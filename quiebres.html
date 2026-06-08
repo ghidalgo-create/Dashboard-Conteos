@@ -441,12 +441,12 @@ function renderEvolutivo() {
   document.getElementById('evolBody').innerHTML = data.map(r => {
     const bars = mesesDisp.map(m => {
       const v = r.meses[m] || 0;
-      const w = maxVal > 0 ? Math.max(Math.round(v/maxVal*120), v>0?4:0) : 0;
+      const w = maxVal > 0 ? Math.max(Math.round(v/maxVal*50), v>0?3:0) : 0;
       const col = v === 0 ? 'transparent' : (v > maxVal*0.6 ? '#C93B3B' : v > maxVal*0.3 ? '#D97706' : '#C9A000');
-      return `<div style="display:flex;flex-direction:column;align-items:center;gap:2px;flex:1">
-        <div style="font-size:10px;font-weight:700;color:${col}">${v||''}</div>
-        <div style="width:100%;height:${w}px;background:${col};border-radius:2px 2px 0 0;min-height:${v>0?4:0}px"></div>
-        <div style="font-size:9px;color:var(--muted)">${MES_SHORT[m]}</div>
+      return `<div style="display:flex;flex-direction:column;align-items:center;gap:1px;flex:1;min-width:44px">
+        <div style="font-size:9px;font-weight:700;color:${col};height:12px;line-height:12px;overflow:hidden">${v||''}</div>
+        <div style="width:85%;height:${w}px;background:${col};border-radius:2px 2px 0 0"></div>
+        <div style="font-size:9px;color:var(--muted);margin-top:1px">${MES_SHORT[m]}</div>
       </div>`;
     }).join('');
 
@@ -456,7 +456,7 @@ function renderEvolutivo() {
       <td style="padding:10px 12px;font-weight:600;color:var(--navy);max-width:280px">${r.pos}</td>
       <td style="padding:10px 12px;color:var(--muted);font-weight:600">${r.cadena}</td>
       <td style="padding:8px 12px">
-        <div style="display:flex;gap:8px;align-items:flex-end;height:80px">${bars}</div>
+        <div style="display:flex;gap:4px;align-items:flex-end;height:65px">${bars}</div>
       </td>
       <td style="padding:10px 12px;text-align:center;font-weight:800;color:var(--navy);font-size:14px">${r.total}</td>
       <td style="padding:10px 12px;text-align:center;font-weight:700;color:${tcolor};font-size:13px">${tarrow} ${Math.abs(r.tendencia)}</td>
