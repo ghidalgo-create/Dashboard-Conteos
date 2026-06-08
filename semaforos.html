@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Semáforos | TT Audit</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#1B2F6E;--navy-dark:#111D47;--gold:#F5C518;--gold-dark:#C9A000;
+  --bg:#F4F6FB;--bg2:#EBEEF7;--card:#FFFFFF;--border:#D0D7EC;
+  --text:#1B2F6E;--text2:#3A4A72;--muted:#6B7A99;
+  --green:#0E9B6A;--red:#C93B3B;--orange:#D97706;--yellow:#C9A000;
+  --green-bg:#D1FAE5;--red-bg:#FEE2E2;--orange-bg:#FEF3C7;--yellow-bg:#FEF9C3;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:"Source Sans 3",sans-serif;font-size:14px;min-height:100vh;}
+.header{background:var(--navy-dark);border-bottom:3px solid var(--gold);padding:0 32px;display:flex;align-items:center;height:72px;}
+.header-left{display:flex;align-items:center;gap:20px;}
+.logo-box{background:#fff;border-radius:8px;padding:6px 16px;height:52px;display:flex;align-items:center;}
+.logo-box span{font-family:serif;font-weight:700;color:#1B2F6E;font-size:14px;}
+.header-sep{width:1px;height:40px;background:rgba(245,197,24,0.35);margin:0 4px;}
+.header-title{font-family:"Playfair Display",serif;font-size:17px;font-weight:700;color:#fff;}
+.header-title em{color:var(--gold);font-style:normal;}
+.header-sub{font-size:11px;color:rgba(255,255,255,0.5);margin-top:2px;}
+.month-bar{background:#fff;border-bottom:1px solid var(--border);padding:12px 32px;display:flex;align-items:center;gap:12px;}
+.month-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);}
+.month-btn{padding:7px 22px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;border:2px solid var(--navy);font-family:"Source Sans 3",sans-serif;transition:all .18s;}
+.month-btn.active{background:var(--navy);color:#fff;}
+.month-btn.inactive{background:#fff;color:var(--navy);}
+.mes-badge{margin-left:auto;background:rgba(27,47,110,0.08);border:1px solid var(--border);color:var(--navy);font-size:11px;font-weight:700;padding:5px 16px;border-radius:20px;letter-spacing:.8px;text-transform:uppercase;}
+.main{padding:20px 32px 32px;}
+.sec-title{font-family:"Playfair Display",serif;font-size:13px;font-weight:600;color:var(--navy);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);display:flex;align-items:center;gap:8px;width:100%;}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;}
+.g5{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:22px;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px 20px;box-shadow:0 1px 6px rgba(27,47,110,0.07);}
+.card-title{font-family:"Playfair Display",serif;font-size:13px;font-weight:600;margin-bottom:14px;color:var(--navy);display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);padding-bottom:10px;}
+
+/* CADENA SUMMARY CARDS */
+.cadena-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;box-shadow:0 1px 6px rgba(27,47,110,0.07);cursor:pointer;transition:all .15s;border-top:4px solid var(--cc,var(--navy));}
+.cadena-card:hover{box-shadow:0 4px 16px rgba(27,47,110,0.12);transform:translateY(-2px);}
+.cadena-card.selected{box-shadow:0 4px 16px rgba(27,47,110,0.2);border:2px solid var(--navy);border-top:4px solid var(--cc,var(--navy));}
+.cadena-name{font-family:"Playfair Display",serif;font-size:16px;font-weight:700;margin-bottom:8px;}
+.cadena-score{font-family:"Playfair Display",serif;font-size:28px;font-weight:700;line-height:1;}
+.cadena-trend{font-size:11px;font-weight:600;margin-top:4px;}
+.cadena-sems{display:flex;gap:4px;margin-top:8px;flex-wrap:wrap;}
+.sem-mini{width:10px;height:10px;border-radius:2px;flex-shrink:0;}
+
+/* SEMAFORO TABLE */
+.sem-table{width:100%;border-collapse:collapse;font-size:12px;}
+.sem-table th{background:var(--bg2);color:var(--navy);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;padding:8px 10px;text-align:left;border-bottom:2px solid var(--border);}
+.sem-table td{padding:8px 10px;border-bottom:1px solid var(--border);}
+.sem-table tr:last-child td{border:none;}
+.sem-table tr:hover td{background:#F0F4FF;}
+.pill{display:inline-block;padding:2px 8px;border-radius:12px;font-size:10px;font-weight:700;}
+.pill-verde{background:#D1FAE5;color:#065F46;}
+.pill-amarillo{background:#FEF9C3;color:#854D0E;}
+.pill-naranja{background:#FEF3C7;color:#92400E;}
+.pill-rojo{background:#FEE2E2;color:#991B1B;}
+.pill-na{background:#F1F5F9;color:#6B7A99;}
+
+/* SCORE BAR */
+.score-bar-wrap{display:flex;align-items:center;gap:8px;}
+.score-bar-bg{width:70px;height:6px;background:var(--bg2);border-radius:3px;overflow:hidden;flex-shrink:0;}
+.score-bar-fill{height:100%;border-radius:3px;}
+
+/* EVOLUTIVO */
+.evol-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;}
+.evol-card{background:var(--bg2);border-radius:8px;padding:12px;border-left:3px solid var(--cc);}
+.evol-cadena{font-size:12px;font-weight:700;margin-bottom:6px;}
+.evol-score{font-family:"Playfair Display",serif;font-size:20px;font-weight:700;}
+.evol-trend{font-size:10px;font-weight:600;margin-top:2px;}
+.evol-bars{display:flex;gap:4px;align-items:flex-end;height:32px;margin-top:6px;}
+.evol-bar{flex:1;border-radius:2px 2px 0 0;}
+
+/* CRITICOS TABLE */
+.crit-table{width:100%;border-collapse:collapse;font-size:12px;}
+.crit-table th{background:var(--bg2);color:var(--navy);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;padding:8px 10px;border-bottom:2px solid var(--border);text-align:left;}
+.crit-table td{padding:9px 10px;border-bottom:1px solid var(--border);}
+.crit-table tr:last-child td{border:none;}
+.crit-table tr:hover td{background:#FFF5F5;}
+
+/* LEGEND */
+.legend-row{display:flex;gap:16px;flex-wrap:wrap;font-size:11px;margin-bottom:16px;}
+.legend-item{display:flex;align-items:center;gap:5px;font-weight:600;}
+.legend-dot{width:12px;height:12px;border-radius:3px;flex-shrink:0;}
+
+.footer{background:var(--navy-dark);border-top:3px solid var(--gold);padding:14px 32px;display:flex;align-items:center;justify-content:space-between;font-size:11px;color:rgba(255,255,255,0.5);margin-top:10px;}
+.footer span{color:var(--gold);font-weight:700;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="logo-box"><span>TT AUDIT</span></div>
+    <div class="header-sep"></div>
+    <div>
+      <div class="header-title">Dashboard <em>Semáforos</em> — Ejecución en Campo</div>
+      <div class="header-sub">Trade Marketing Solutions · TT Audit · BAT</div>
+    </div>
+  </div>
+</div>
+
+<div class="month-bar">
+  <span class="month-label">Seleccionar mes:</span>
+  <button class="month-btn inactive" data-mes="FEB">Febrero 2026</button>
+  <button class="month-btn inactive" data-mes="MAR">Marzo 2026</button>
+  <button class="month-btn inactive" data-mes="ABR">Abril 2026</button>
+  <button class="month-btn active"   data-mes="MAY">Mayo 2026</button>
+  <div class="mes-badge" id="mesBadge">MAYO 2026</div>
+</div>
+
+<div class="main">
+
+  <!-- LEGEND -->
+  <div class="legend-row">
+    <div class="legend-item"><div class="legend-dot" style="background:#0E9B6A"></div>VERDE ≥ 9.5 — Excelente</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#C9A000"></div>AMARILLO 8.5–9.4 — Bueno</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#D97706"></div>NARANJA 7.0–8.4 — Alerta</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#C93B3B"></div>ROJO < 7.0 — Crítico</div>
+  </div>
+
+  <!-- EVOLUTIVO POR CADENA -->
+  <div class="sec-title"><span class="dot" style="background:var(--gold-dark)"></span>Evolutivo por Cadena — Promedio semanal</div>
+  <div class="g5" id="evolucionGrid"></div>
+
+  <!-- KPI GRID -->
+  <div class="sec-title" style="margin-top:4px"><span class="dot" style="background:var(--navy)"></span>Semáforo por Cadena — Selecciona una para ver el detalle</div>
+  <div class="g5" id="cadenaCards"></div>
+
+  <!-- KPI DETAIL + CRITICOS -->
+  <div class="g2">
+    <div class="card">
+      <div class="card-title"><span class="dot" style="background:var(--navy)"></span>KPIs — <span id="cadenaLabel">Selecciona una cadena</span></div>
+      <div id="kpiDetail"><div style="color:var(--muted);font-size:13px;padding:16px 0">Haz clic en una cadena para ver sus KPIs</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="dot" style="background:var(--red)"></span>Top KPIs Críticos del mes</div>
+      <div id="criticosTable"></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <div>© 2026 <span>TT Audit</span> · Trade Marketing Solutions · BAT</div>
+  <div id="footerDate">Dashboard de Ejecución en Campo — Abril 2026</div>
+</div>
+
+<script>
+const MAYO_DATA = {"AVA": [{"kpi": "LAYOUT", "s1": 3.81, "s2": 5.0, "s3": 4.55, "s4": 6.19, "promedio": 4.54, "semaforo": "ROJO"}, {"kpi": "DISPENSER", "s1": 10.0, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "MARCAPRECIOS", "s1": 10.0, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "UAP +18", "s1": 10.0, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "ESQUINERO VUSE", "s1": 9.05, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 9.78, "semaforo": "VERDE"}, {"kpi": "CONTEOS", "s1": null, "s2": null, "s3": null, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "COBERTURA", "s1": 10.0, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "STICKER EEFF LS E.", "s1": 10.0, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "FLYER CONECTADOS", "s1": 10.0, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "QR VUSE / VELO", "s1": 10.0, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}], "OXXO": [{"kpi": "ESTADO CIGARRERA", "s1": 9.93, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 9.99, "semaforo": "VERDE"}, {"kpi": "MARCAPRECIOS", "s1": 9.93, "s2": 10.0, "s3": 9.93, "s4": 10.0, "promedio": 9.95, "semaforo": "VERDE"}, {"kpi": "LAYOUT", "s1": 3.08, "s2": 4.12, "s3": 4.85, "s4": 5.61, "promedio": 4.62, "semaforo": "ROJO"}, {"kpi": "FLYER CONECTADOS", "s1": 10.0, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "HAEDER VUSE", "s1": 10.0, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "CROSS TT", "s1": 10.0, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "DISPENSER", "s1": 10.0, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "QR", "s1": 7.34, "s2": 7.36, "s3": 7.34, "s4": 6.42, "promedio": 7.09, "semaforo": "NARANJA"}, {"kpi": "CONTEO", "s1": null, "s2": null, "s3": null, "s4": 9.77, "promedio": 9.77, "semaforo": "VERDE"}, {"kpi": "COBERTURA", "s1": 9.73, "s2": 9.5, "s3": 9.71, "s4": 9.46, "promedio": 9.59, "semaforo": "VERDE"}], "TAMBO": [{"kpi": "CIGARRERA", "s1": 9.57, "s2": 9.29, "s3": 9.42, "s4": 9.22, "promedio": 9.34, "semaforo": "AMARILLO"}, {"kpi": "LAYOUT", "s1": 2.83, "s2": 4.21, "s3": 4.28, "s4": 5.15, "promedio": 3.94, "semaforo": "ROJO"}, {"kpi": "DISPENSER", "s1": 9.96, "s2": 9.96, "s3": 9.98, "s4": 9.96, "promedio": 9.96, "semaforo": "VERDE"}, {"kpi": "TT VUSE", "s1": 9.9, "s2": 9.69, "s3": 9.78, "s4": 9.78, "promedio": 9.8, "semaforo": "VERDE"}, {"kpi": "TT ECLIPSE", "s1": 9.85, "s2": 9.6, "s3": 9.44, "s4": 9.75, "promedio": 9.68, "semaforo": "VERDE"}, {"kpi": "QR  VUSE/VELO", "s1": 7.68, "s2": 7.56, "s3": 7.94, "s4": 6.3, "promedio": 7.26, "semaforo": "NARANJA"}, {"kpi": "MENU BOARDS", "s1": 10.0, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "MARCAPRECIOS", "s1": 9.86, "s2": 9.83, "s3": 9.9, "s4": 9.92, "promedio": 9.87, "semaforo": "VERDE"}, {"kpi": "CONTEOS", "s1": null, "s2": null, "s3": null, "s4": 9.77, "promedio": 9.77, "semaforo": "VERDE"}, {"kpi": "ACOPLES PMI", "s1": 9.96, "s2": 9.94, "s3": 9.94, "s4": 9.9, "promedio": 9.93, "semaforo": "VERDE"}, {"kpi": "FLYER CONECTADOS", "s1": 10.0, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "COBERTURA", "s1": 9.61, "s2": 9.58, "s3": 9.7, "s4": 9.35, "promedio": 9.58, "semaforo": "VERDE"}, {"kpi": "PANTALLA LOTOBOLA", "s1": 9.98, "s2": 9.98, "s3": 9.98, "s4": 9.98, "promedio": 9.99, "semaforo": "VERDE"}], "PRIMAX": [{"kpi": "CIGARRERA", "s1": 10.0, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "MARCAPRECIOS", "s1": 9.9, "s2": 9.8, "s3": 9.9, "s4": 9.78, "promedio": 9.77, "semaforo": "VERDE"}, {"kpi": "LAYOUT", "s1": 5.48, "s2": 5.21, "s3": 5.48, "s4": 6.07, "promedio": 5.02, "semaforo": "ROJO"}, {"kpi": "FLYER CONECTADOS", "s1": 10.0, "s2": 7.64, "s3": 10.0, "s4": 10.0, "promedio": 9.39, "semaforo": "AMARILLO"}, {"kpi": "DISPENSER", "s1": 10.0, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "QR", "s1": 7.86, "s2": 7.83, "s3": 7.86, "s4": 7.63, "promedio": 7.79, "semaforo": "NARANJA"}, {"kpi": "CONTEO", "s1": null, "s2": null, "s3": null, "s4": 9.51, "promedio": 9.51, "semaforo": "VERDE"}, {"kpi": "COBERTURA", "s1": 9.26, "s2": 9.57, "s3": 9.81, "s4": 9.7, "promedio": 9.59, "semaforo": "VERDE"}], "REPSOL": [{"kpi": "CIGARRERA", "s1": 10.0, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "MARCAPRECIOS", "s1": 9.76, "s2": 9.52, "s3": 9.31, "s4": 8.52, "promedio": 9.46, "semaforo": "AMARILLO"}, {"kpi": "LAYOUT", "s1": 3.95, "s2": 6.5, "s3": 8.29, "s4": 7.78, "promedio": 6.17, "semaforo": "ROJO"}, {"kpi": "STICKER EFF ECLIPSE", "s1": 10.0, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "ROMPETRAFICO VUSE", "s1": 10.0, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "ROMPETRAFICO LS ECLIPSE", "s1": 10.0, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "DISPENSER", "s1": 10.0, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "GLORIFICADOR LS", "s1": 8.78, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 9.73, "semaforo": "VERDE"}, {"kpi": "QR", "s1": 7.07, "s2": 7.14, "s3": 6.67, "s4": 6.25, "promedio": 6.7, "semaforo": "ROJO"}, {"kpi": "CONTEO", "s1": null, "s2": null, "s3": null, "s4": 9.29, "promedio": 9.29, "semaforo": "AMARILLO"}, {"kpi": "COBERTURA", "s1": 9.7, "s2": 9.76, "s3": 9.88, "s4": 9.25, "promedio": 9.54, "semaforo": "VERDE"}]};
+
+const DATA = {"FEB": {"kpis": {"AVA": [{"kpi": "MARCAPRECIOS", "s1": 8.82, "s2": 8.95, "s3": 9.0, "s4": 8.95, "promedio": 8.93, "semaforo": "AMARILLO"}, {"kpi": "STICKER EEFF LS E.", "s1": 10.0, "s2": 8.95, "s3": 9.0, "s4": 9.47, "promedio": 9.36, "semaforo": "AMARILLO"}, {"kpi": "ESQUINERO VUSE", "s1": 8.82, "s2": 8.95, "s3": 10.0, "s4": 10.0, "promedio": 9.44, "semaforo": "AMARILLO"}, {"kpi": "CONTEO", "s1": null, "s2": null, "s3": null, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "LAYOUT", "s1": 9.41, "s2": 9.47, "s3": 10.0, "s4": 10.0, "promedio": 9.72, "semaforo": "VERDE"}, {"kpi": "DISPENSER", "s1": 10.0, "s2": 9.47, "s3": 10.0, "s4": 10.0, "promedio": 9.87, "semaforo": "VERDE"}, {"kpi": "COBERTURA", "s1": 10.0, "s2": 10.0, "s3": 10.0, "s4": 9.5, "promedio": 9.88, "semaforo": "VERDE"}, {"kpi": "UAP +18", "s1": 10.0, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "FLYER CONECTADOS", "s1": 10.0, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "QR  VUSE/VELO", "s1": 10.0, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}], "TAMBO": [{"kpi": "REEL VUSE 1K", "s1": null, "s2": 2.23, "s3": 5.19, "s4": 4.34, "promedio": 3.92, "semaforo": "ROJO"}, {"kpi": "FLYER CONECTADOS", "s1": 10.0, "s2": 3.02, "s3": 10.0, "s4": 2.92, "promedio": 6.48, "semaforo": "ROJO"}, {"kpi": "QR  VUSE/VELO", "s1": 10.0, "s2": 10.0, "s3": 5.35, "s4": 4.19, "promedio": 7.38, "semaforo": "NARANJA"}, {"kpi": "CONTEO", "s1": null, "s2": null, "s3": null, "s4": 9.06, "promedio": 9.06, "semaforo": "AMARILLO"}, {"kpi": "COBERTURA", "s1": 8.0, "s2": 7.58, "s3": 7.47, "s4": 8.55, "promedio": 7.9, "semaforo": "NARANJA"}, {"kpi": "CENEFA TAMBO", "s1": null, "s2": null, "s3": 10.0, "s4": 6.16, "promedio": 8.08, "semaforo": "NARANJA"}, {"kpi": "TT ECLIPSE", "s1": 8.95, "s2": 8.57, "s3": 9.31, "s4": 8.98, "promedio": 8.95, "semaforo": "AMARILLO"}, {"kpi": "MARCAPRECIOS", "s1": 9.06, "s2": 8.84, "s3": 9.1, "s4": 8.82, "promedio": 8.95, "semaforo": "AMARILLO"}, {"kpi": "LAYOUT", "s1": 8.92, "s2": 9.2, "s3": 9.17, "s4": 8.88, "promedio": 9.04, "semaforo": "AMARILLO"}, {"kpi": "TT VUSE", "s1": 9.31, "s2": 9.38, "s3": 8.75, "s4": 9.0, "promedio": 9.11, "semaforo": "AMARILLO"}, {"kpi": "CIGARRERA", "s1": 9.53, "s2": 9.58, "s3": 9.49, "s4": 9.51, "promedio": 9.53, "semaforo": "VERDE"}, {"kpi": "ACOPLES PMI", "s1": 9.88, "s2": 9.87, "s3": 9.93, "s4": 9.88, "promedio": 9.89, "semaforo": "VERDE"}, {"kpi": "DISPENSER", "s1": 9.88, "s2": 9.98, "s3": 9.95, "s4": 10.0, "promedio": 9.95, "semaforo": "VERDE"}, {"kpi": "PANTALLA LOTOBOLA", "s1": null, "s2": 10.0, "s3": 9.95, "s4": 9.96, "promedio": 9.97, "semaforo": "VERDE"}], "PRIMAX": [{"kpi": "CONTEO", "s1": null, "s2": null, "s3": null, "s4": 9.04, "promedio": 9.04, "semaforo": "AMARILLO"}, {"kpi": "QR  VUSE/VELO", "s1": 10.0, "s2": 10.0, "s3": null, "s4": 4.79, "promedio": 8.26, "semaforo": "NARANJA"}, {"kpi": "FLYER CONECTADOS", "s1": null, "s2": null, "s3": 7.96, "s4": 8.85, "promedio": 8.4, "semaforo": "NARANJA"}, {"kpi": "COBERTURA", "s1": 8.32, "s2": 8.65, "s3": null, "s4": 9.45, "promedio": 8.81, "semaforo": "AMARILLO"}, {"kpi": "MARCAPRECIOS", "s1": 9.3, "s2": 9.38, "s3": 9.44, "s4": 9.37, "promedio": 9.37, "semaforo": "AMARILLO"}, {"kpi": "UAP +18", "s1": 9.31, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 9.83, "semaforo": "VERDE"}, {"kpi": "CIGARRERA", "s1": 10.0, "s2": 9.83, "s3": 10.0, "s4": 9.79, "promedio": 9.91, "semaforo": "VERDE"}, {"kpi": "DISPENSER", "s1": 9.92, "s2": 10.0, "s3": null, "s4": 10.0, "promedio": 9.97, "semaforo": "VERDE"}, {"kpi": "CAVA LS CORE", "s1": 10.0, "s2": 10.0, "s3": null, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "FLYER ECLIPSE", "s1": null, "s2": null, "s3": 10.0, "s4": null, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "FLYER VELO", "s1": null, "s2": null, "s3": 10.0, "s4": null, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "TRIPTICO VELO", "s1": null, "s2": null, "s3": 10.0, "s4": null, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "LANYARD", "s1": null, "s2": null, "s3": 10.0, "s4": null, "promedio": 10.0, "semaforo": "VERDE"}], "REPSOL": [{"kpi": "QR  VUSE/VELO", "s1": 10.0, "s2": 10.0, "s3": 4.91, "s4": 4.29, "promedio": 7.3, "semaforo": "NARANJA"}, {"kpi": "CONTEO", "s1": null, "s2": null, "s3": null, "s4": 8.57, "promedio": 8.57, "semaforo": "AMARILLO"}, {"kpi": "COBERTURA", "s1": 6.73, "s2": 8.16, "s3": 8.55, "s4": 9.13, "promedio": 8.14, "semaforo": "NARANJA"}, {"kpi": "DISPENSER", "s1": 10.0, "s2": 8.68, "s3": 8.78, "s4": 8.68, "promedio": 9.04, "semaforo": "AMARILLO"}, {"kpi": "MARCAPRECIOS", "s1": 9.27, "s2": 9.14, "s3": 9.27, "s4": 9.14, "promedio": 9.21, "semaforo": "AMARILLO"}, {"kpi": "GLORIFICADOR LS", "s1": 10.0, "s2": 9.39, "s3": 9.45, "s4": 9.39, "promedio": 9.56, "semaforo": "VERDE"}, {"kpi": "CIGARRERA", "s1": 10.0, "s2": 9.39, "s3": 9.45, "s4": 9.59, "promedio": 9.61, "semaforo": "VERDE"}, {"kpi": "ROMPETRAFICO VUSE", "s1": 8.91, "s2": 10.0, "s3": 10.0, "s4": 9.8, "promedio": 9.68, "semaforo": "VERDE"}, {"kpi": "FLYER VELO", "s1": 9.02, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 9.76, "semaforo": "VERDE"}, {"kpi": "TRIPTICO VELO", "s1": 9.02, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 9.76, "semaforo": "VERDE"}, {"kpi": "ROMPETRAFICO LS ECLIPSE", "s1": 9.45, "s2": 10.0, "s3": 10.0, "s4": 9.8, "promedio": 9.81, "semaforo": "VERDE"}, {"kpi": "FLYER ECLIPSE", "s1": 9.45, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 9.86, "semaforo": "VERDE"}, {"kpi": "STICKER EEFF LS E.", "s1": 9.45, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 9.86, "semaforo": "VERDE"}, {"kpi": "CAVA LS CORE", "s1": 9.45, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 9.86, "semaforo": "VERDE"}, {"kpi": "UAP +18", "s1": 9.82, "s2": 10.0, "s3": 10.0, "s4": 9.8, "promedio": 9.9, "semaforo": "VERDE"}, {"kpi": "GLORIFICADOR VUSE", "s1": 10.0, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}], "OXXO": [{"kpi": "QR  VUSE/VELO", "s1": 9.83, "s2": 10.0, "s3": 2.59, "s4": 3.29, "promedio": 6.43, "semaforo": "ROJO"}, {"kpi": "CONTEO", "s1": null, "s2": null, "s3": null, "s4": 9.08, "promedio": 9.08, "semaforo": "AMARILLO"}, {"kpi": "FLYER CONECTADOS", "s1": null, "s2": null, "s3": 6.39, "s4": 7.34, "promedio": 6.86, "semaforo": "ROJO"}, {"kpi": "MARCAPRECIOS", "s1": 9.83, "s2": 9.3, "s3": 7.39, "s4": 7.5, "promedio": 8.51, "semaforo": "AMARILLO"}, {"kpi": "COBERTURA", "s1": 8.55, "s2": 7.98, "s3": 8.42, "s4": 9.42, "promedio": 8.59, "semaforo": "AMARILLO"}, {"kpi": "LAYOUT", "s1": null, "s2": null, "s3": 9.27, "s4": 9.94, "promedio": 9.61, "semaforo": "VERDE"}, {"kpi": "PINES", "s1": 9.5, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 9.88, "semaforo": "VERDE"}, {"kpi": "DISPENSER", "s1": 9.75, "s2": 10.0, "s3": 9.94, "s4": 10.0, "promedio": 9.92, "semaforo": "VERDE"}]}, "evolutivo": {"AVA": {"s1": 9.7, "s2": 9.53, "s3": 9.75, "s4": 9.79, "promedio": 9.69, "trend": "-"}, "TAMBO": {"s1": 9.4, "s2": 8.2, "s3": 8.73, "s4": 7.88, "promedio": 8.55, "trend": "▼ -0.85"}, "PRIMAX": {"s1": 9.55, "s2": 9.69, "s3": 9.68, "s4": 9.03, "promedio": 9.49, "trend": "▼ -0.64"}, "REPSOL": {"s1": 9.37, "s2": 9.65, "s3": 9.36, "s4": 9.26, "promedio": 9.41, "trend": "▼ -0.05"}, "OXXO": {"s1": 9.49, "s2": 9.46, "s3": 7.71, "s4": 8.32, "promedio": 8.75, "trend": "▲ +0.65"}}, "criticos": [{"num": 1, "cadena": "TAMBO", "kpi": "REEL VUSE 1K", "score": 3.92, "estado": "CRITICO", "accion": "Refuerzo por parte de BAT a la cuenta desde el día 1."}, {"num": 2, "cadena": "OXXO", "kpi": "QR  VUSE/VELO", "score": 6.43, "estado": "CRITICO", "accion": "Entrega de stock adicionales por parte BAT"}, {"num": 3, "cadena": "TAMBO", "kpi": "FLYER CONECTADOS", "score": 6.48, "estado": "CRITICO", "accion": "Entrega de stock adicionales por parte BAT"}, {"num": 4, "cadena": "OXXO", "kpi": "FLYER CONECTADOS", "score": 6.86, "estado": "CRITICO", "accion": "Entrega de stock adicionales por parte BAT"}, {"num": 5, "cadena": "REPSOL", "kpi": "QR  VUSE/VELO", "score": 7.3, "estado": "ALERTA", "accion": "Entrega de stock adicionales por parte BAT"}, {"num": 7, "cadena": "TAMBO", "kpi": "QR  VUSE/VELO", "score": 7.38, "estado": "ALERTA", "accion": "Entrega de stock adicionales por parte BAT"}, {"num": 6, "cadena": "REPSOL", "kpi": "CONTEO", "score": 8.6, "estado": "ALERTA", "accion": "Reforzar los no efectivos con las tiendas de la cadena"}]}, "MAR": {"kpis": {"AVA": [{"kpi": "LAYOUT", "s1": 3.52, "s2": 3.75, "s3": 3.75, "s4": 3.75, "promedio": 2.5, "semaforo": "ROJO"}, {"kpi": "DISPENSER", "s1": 10.0, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "MARCAPRECIOS", "s1": 8.24, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 9.33, "semaforo": "AMARILLO"}, {"kpi": "UAP +18", "s1": 8.82, "s2": 8.75, "s3": 9.05, "s4": 8.82, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "ESQUINERO VUSE", "s1": 10.0, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 9.33, "semaforo": "AMARILLO"}, {"kpi": "CONTEOS", "s1": 8.82, "s2": 10.0, "s3": 9.52, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "COBERTURA", "s1": 7.73, "s2": 8.42, "s3": 10.0, "s4": 8.95, "promedio": 9.38, "semaforo": "AMARILLO"}, {"kpi": "STICKER EEFF LS E.", "s1": 10.0, "s2": 9.38, "s3": 10.0, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "FLYER CONECTADOS", "s1": 10.0, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "QR VUSE / VELO", "s1": 10.0, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}], "TAMBO": [{"kpi": "CIGARRERA", "s1": 9.7, "s2": 9.79, "s3": 9.87, "s4": 9.57, "promedio": 9.9, "semaforo": "VERDE"}, {"kpi": "LAYOUT", "s1": 4.34, "s2": 4.38, "s3": 4.07, "s4": 4.12, "promedio": 4.21, "semaforo": "ROJO"}, {"kpi": "DISPENSER", "s1": 10.0, "s2": 10.0, "s3": 9.98, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "TT VUSE", "s1": 8.84, "s2": 9.6, "s3": 9.68, "s4": 9.57, "promedio": 9.71, "semaforo": "VERDE"}, {"kpi": "TT ECLIPSE", "s1": 8.98, "s2": 9.39, "s3": 9.68, "s4": 9.27, "promedio": 9.68, "semaforo": "VERDE"}, {"kpi": "QR  VUSE/VELO", "s1": 6.14, "s2": 5.59, "s3": 6.9, "s4": 6.69, "promedio": 6.04, "semaforo": "ROJO"}, {"kpi": "MARCAPRECIOS", "s1": 7.93, "s2": 8.26, "s3": 9.02, "s4": 8.03, "promedio": 7.72, "semaforo": "NARANJA"}, {"kpi": "CONTEOS", "s1": 6.68, "s2": 7.33, "s3": 8.82, "s4": 10.0, "promedio": 7.43, "semaforo": "NARANJA"}, {"kpi": "ACOPLES PMI", "s1": 9.93, "s2": 9.89, "s3": 9.92, "s4": 9.92, "promedio": 9.97, "semaforo": "VERDE"}, {"kpi": "FLYER CONECTADOS", "s1": 1.1, "s2": 1.33, "s3": 1.76, "s4": 1.49, "promedio": 7.23, "semaforo": "NARANJA"}, {"kpi": "COBERTURA", "s1": 7.88, "s2": 8.3, "s3": 8.51, "s4": 8.62, "promedio": 8.05, "semaforo": "NARANJA"}, {"kpi": "REEL 3K", "s1": 9.25, "s2": 7.39, "s3": 9.51, "s4": 6.35, "promedio": 7.58, "semaforo": "NARANJA"}, {"kpi": "PANTALLA LOTOBOLA", "s1": 9.98, "s2": 9.98, "s3": 9.96, "s4": 9.96, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "CENEFA TAMBO", "s1": 7.59, "s2": 8.41, "s3": 9.66, "s4": 9.29, "promedio": 9.68, "semaforo": "VERDE"}], "PRIMAX": [{"kpi": "CIGARRERA", "s1": 4.31, "s2": 4.38, "s3": 4.31, "s4": 4.25, "promedio": 4.48, "semaforo": "ROJO"}, {"kpi": "MARCAPRECIOS", "s1": 6.36, "s2": 7.36, "s3": 6.4, "s4": 8.09, "promedio": 7.78, "semaforo": "NARANJA"}, {"kpi": "FLYER CONECTADOS", "s1": 5.38, "s2": 5.19, "s3": 5.29, "s4": 6.72, "promedio": 7.18, "semaforo": "NARANJA"}, {"kpi": "DISPENSER", "s1": 10.0, "s2": 9.93, "s3": 10.0, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "VIBRIN UAP", "s1": 10.0, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "QR", "s1": 5.45, "s2": 5.67, "s3": 5.52, "s4": 6.17, "promedio": 6.44, "semaforo": "ROJO"}, {"kpi": "STICKER MESON", "s1": null, "s2": 8.31, "s3": 10.0, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "CONTEO", "s1": 5.83, "s2": 7.23, "s3": 8.73, "s4": 9.43, "promedio": 9.24, "semaforo": "AMARILLO"}, {"kpi": "COBERTURA", "s1": 8.25, "s2": 8.44, "s3": 9.14, "s4": 9.05, "promedio": 8.77, "semaforo": "AMARILLO"}], "REPSOL": [{"kpi": "CIGARRERA", "s1": 4.41, "s2": 4.31, "s3": 4.41, "s4": 4.41, "promedio": 4.41, "semaforo": "ROJO"}, {"kpi": "MARCAPRECIOS", "s1": 9.33, "s2": 9.7, "s3": 9.33, "s4": 9.7, "promedio": 9.33, "semaforo": "AMARILLO"}, {"kpi": "STICKER EFF ECLIPSE", "s1": 10.0, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "ROMPETRAFICO VUSE", "s1": 9.3, "s2": 8.91, "s3": 9.07, "s4": 8.91, "promedio": 9.07, "semaforo": "AMARILLO"}, {"kpi": "ROMPETRAFICO LS ECLIPSE", "s1": 9.3, "s2": 8.91, "s3": 9.3, "s4": 8.91, "promedio": 9.3, "semaforo": "AMARILLO"}, {"kpi": "CAVA LS CORE", "s1": 10.0, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "DISPENSER", "s1": 9.33, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "GLORIFICADOR LS", "s1": 9.53, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "GLORIFICADOR VUSE", "s1": 10.0, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "QR", "s1": 5.58, "s2": 4.78, "s3": 6.28, "s4": 5.87, "promedio": 6.51, "semaforo": "ROJO"}, {"kpi": "CONTEO", "s1": 4.65, "s2": 6.3, "s3": 7.44, "s4": 8.48, "promedio": 8.84, "semaforo": "AMARILLO"}, {"kpi": "COBERTURA", "s1": 6.98, "s2": 8.26, "s3": 8.49, "s4": 8.42, "promedio": 9.44, "semaforo": "AMARILLO"}], "OXXO": [{"kpi": "MARCAPRECIOS", "s1": 9.31, "s2": 9.64, "s3": 9.79, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "LAYOUT", "s1": 4.88, "s2": 4.78, "s3": 5.04, "s4": 5.0, "promedio": 5.04, "semaforo": "ROJO"}, {"kpi": "FLYER CONECTADOS", "s1": 4.4, "s2": 3.19, "s3": 5.11, "s4": 3.19, "promedio": 5.25, "semaforo": "ROJO"}, {"kpi": "USO DE PINES", "s1": null, "s2": 10.0, "s3": 9.72, "s4": 10.0, "promedio": 9.72, "semaforo": "VERDE"}, {"kpi": "HAEDER VUSE", "s1": null, "s2": 6.52, "s3": 10.0, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "VIBRIN LS CORE", "s1": null, "s2": 8.57, "s3": 10.0, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "DISPENSER", "s1": 10.0, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 9.93, "semaforo": "VERDE"}, {"kpi": "DISPENSER CONTAMINADO", "s1": 9.57, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "QR", "s1": 5.95, "s2": 4.82, "s3": 6.1, "s4": 5.74, "promedio": 6.31, "semaforo": "ROJO"}, {"kpi": "CONTEO", "s1": 6.29, "s2": 6.81, "s3": 7.45, "s4": 9.5, "promedio": 9.79, "semaforo": "VERDE"}, {"kpi": "COBERTURA", "s1": 8.08, "s2": 7.98, "s3": 8.67, "s4": 9.04, "promedio": 8.0, "semaforo": "NARANJA"}]}, "evolutivo": {"AVA": {"s1": 8.71, "s2": 9.03, "s3": 9.23, "s4": 9.15, "promedio": 9.05, "trend": "9.03"}, "TAMBO": {"s1": 7.74, "s2": 7.83, "s3": 8.38, "s4": 8.06, "promedio": 8.37, "trend": "8.076"}, "PRIMAX": {"s1": 6.95, "s2": 7.39, "s3": 7.71, "s4": 8.19, "promedio": 8.21, "trend": "7.69"}, "REPSOL": {"s1": 8.2, "s2": 8.43, "s3": 8.69, "s4": 8.72, "promedio": 8.91, "trend": "8.59"}, "OXXO": {"s1": 7.31, "s2": 7.48, "s3": 8.35, "s4": 8.41, "promedio": 8.55, "trend": "8.02"}}, "criticos": [{"num": 1, "cadena": "TAMBO", "kpi": "FLYER CONECTADOS", "score": 3.61, "estado": "CRITICO", "accion": "Entrega de stock adicionales por parte BAT"}, {"num": 2, "cadena": "OXXO", "kpi": "FLYER CONECTADOS", "score": 3.92, "estado": "CRITICO", "accion": "Entrega de stock adicionales por parte BAT"}, {"num": 3, "cadena": "AVA", "kpi": "LAYOUT", "score": 3.48, "estado": "CRITICO", "accion": "Capacitación e implementación de stickers layout al 100%"}, {"num": 4, "cadena": "TAMBO", "kpi": "LAYOUT", "score": 4.18, "estado": "CRITICO", "accion": "Capacitación e implementación de stickers layout al 100%"}, {"num": 5, "cadena": "PRIMAX", "kpi": "LAYOUT", "score": 4.37, "estado": "CRITICO", "accion": "Capacitación e implementación de stickers layout al 100%"}, {"num": 6, "cadena": "REPSOL", "kpi": "LAYOUT", "score": 4.39, "estado": "CRITICO", "accion": "Capacitación e implementación de stickers layout al 100%"}, {"num": 7, "cadena": "OXXO", "kpi": "LAYOUT", "score": 4.95, "estado": "CRITICO", "accion": "Capacitación e implementación de stickers layout al 100%"}]}, "ABR": {"kpis": {"AVA": [{"kpi": "LAYOUT", "s1": 3.33, "s2": 6.32, "s3": 2.38, "s4": 4.29, "promedio": 4.08, "semaforo": "ROJO"}, {"kpi": "DISPENSER", "s1": 10.0, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "MARCAPRECIOS", "s1": 10.0, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "UAP +18", "s1": 10.0, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "ESQUINERO VUSE", "s1": 9.44, "s2": 10.0, "s3": 9.52, "s4": 10.0, "promedio": 9.74, "semaforo": "VERDE"}, {"kpi": "CONTEOS", "s1": null, "s2": null, "s3": null, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "COBERTURA", "s1": 7.83, "s2": 9.5, "s3": 10.0, "s4": 8.75, "promedio": 9.02, "semaforo": "AMARILLO"}, {"kpi": "STICKER EEFF LS E.", "s1": 10.0, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "FLYER CONECTADOS", "s1": 10.0, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "QR VUSE / VELO", "s1": 10.0, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "TT LS CORE", "s1": 7.78, "s2": 9.47, "s3": 10.0, "s4": 10.0, "promedio": 9.31, "semaforo": "AMARILLO"}], "TAMBO": [{"kpi": "CIGARRERA", "s1": 9.29, "s2": 9.56, "s3": 9.64, "s4": 9.25, "promedio": 9.44, "semaforo": "AMARILLO"}, {"kpi": "LAYOUT", "s1": 4.53, "s2": 3.54, "s3": 2.79, "s4": 1.77, "promedio": 3.16, "semaforo": "ROJO"}, {"kpi": "DISPENSER", "s1": 10.0, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "TT VUSE", "s1": 9.54, "s2": 9.68, "s3": 9.64, "s4": 9.66, "promedio": 9.63, "semaforo": "VERDE"}, {"kpi": "TT ECLIPSE", "s1": 9.47, "s2": 6.59, "s3": 9.4, "s4": 9.36, "promedio": 8.71, "semaforo": "AMARILLO"}, {"kpi": "QR  VUSE/VELO", "s1": 6.33, "s2": 4.67, "s3": 6.67, "s4": 7.35, "promedio": 6.26, "semaforo": "ROJO"}, {"kpi": "MARCAPRECIOS", "s1": 7.82, "s2": 7.82, "s3": 7.94, "s4": 9.56, "promedio": 8.29, "semaforo": "NARANJA"}, {"kpi": "CONTEOS", "s1": null, "s2": null, "s3": null, "s4": 9.74, "promedio": 9.74, "semaforo": "VERDE"}, {"kpi": "ACOPLES PMI", "s1": 9.92, "s2": 9.92, "s3": 9.94, "s4": 9.93, "promedio": 9.93, "semaforo": "VERDE"}, {"kpi": "FLYER CONECTADOS", "s1": 5.95, "s2": 5.99, "s3": 6.42, "s4": 6.39, "promedio": 6.19, "semaforo": "ROJO"}, {"kpi": "COBERTURA", "s1": 7.63, "s2": 9.2, "s3": 9.12, "s4": 8.47, "promedio": 8.6, "semaforo": "AMARILLO"}, {"kpi": "MENU BOARDS", "s1": 10.0, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "PANTALLA LOTOBOLA", "s1": 9.97, "s2": 9.98, "s3": 9.98, "s4": 9.97, "promedio": 9.98, "semaforo": "VERDE"}, {"kpi": "CENEFA TAMBO", "s1": 9.66, "s2": 9.35, "s3": 9.52, "s4": 9.37, "promedio": 9.47, "semaforo": "AMARILLO"}, {"kpi": "TT CROSS", "s1": null, "s2": null, "s3": null, "s4": 9.88, "promedio": 9.88, "semaforo": "VERDE"}], "PRIMAX": [{"kpi": "CIGARRERA", "s1": 10.0, "s2": 9.75, "s3": 9.55, "s4": 9.75, "promedio": 9.76, "semaforo": "VERDE"}, {"kpi": "MARCAPRECIOS", "s1": 8.39, "s2": 7.67, "s3": 9.13, "s4": 9.67, "promedio": 8.72, "semaforo": "AMARILLO"}, {"kpi": "LAYOUT", "s1": 3.91, "s2": 3.1, "s3": 3.64, "s4": 3.5, "promedio": 3.38, "semaforo": "ROJO"}, {"kpi": "FLYER CONECTADOS", "s1": 7.5, "s2": 7.12, "s3": 8.51, "s4": 7.58, "promedio": 7.68, "semaforo": "NARANJA"}, {"kpi": "DISPENSER", "s1": 10.0, "s2": 9.92, "s3": 10.0, "s4": 9.92, "promedio": 9.96, "semaforo": "VERDE"}, {"kpi": "QR", "s1": 6.99, "s2": 6.5, "s3": 6.89, "s4": 6.5, "promedio": 6.72, "semaforo": "ROJO"}, {"kpi": "STICKER MESON", "s1": 8.53, "s2": 9.15, "s3": 10.0, "s4": 8.31, "promedio": 9.0, "semaforo": "AMARILLO"}, {"kpi": "CONTEO", "s1": null, "s2": null, "s3": null, "s4": 9.58, "promedio": 9.58, "semaforo": "VERDE"}, {"kpi": "COBERTURA", "s1": 6.87, "s2": 9.29, "s3": 9.0, "s4": 8.46, "promedio": 8.41, "semaforo": "NARANJA"}], "REPSOL": [{"kpi": "CIGARRERA", "s1": 10.0, "s2": 9.75, "s3": 9.51, "s4": 10.0, "promedio": 9.81, "semaforo": "VERDE"}, {"kpi": "MARCAPRECIOS", "s1": 9.68, "s2": 8.89, "s3": 9.66, "s4": 8.89, "promedio": 9.28, "semaforo": "AMARILLO"}, {"kpi": "LAYOUT", "s1": 4.42, "s2": 4.75, "s3": 4.39, "s4": 4.5, "promedio": 4.51, "semaforo": "ROJO"}, {"kpi": "STICKER EFF ECLIPSE", "s1": 10.0, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "ROMPETRAFICO VUSE", "s1": 8.84, "s2": 9.0, "s3": 8.78, "s4": 9.0, "promedio": 8.9, "semaforo": "AMARILLO"}, {"kpi": "ROMPETRAFICO LS ECLIPSE", "s1": 8.84, "s2": 9.0, "s3": 8.54, "s4": 9.0, "promedio": 8.84, "semaforo": "AMARILLO"}, {"kpi": "DISPENSER", "s1": 10.0, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "GLORIFICADOR LS", "s1": 10.0, "s2": 8.5, "s3": 8.78, "s4": 8.5, "promedio": 8.95, "semaforo": "AMARILLO"}, {"kpi": "GLORIFICADOR VUSE", "s1": 7.0, "s2": 8.33, "s3": 7.0, "s4": 8.33, "promedio": 7.66, "semaforo": "NARANJA"}, {"kpi": "QR", "s1": 6.28, "s2": 6.25, "s3": 6.1, "s4": 6.25, "promedio": 6.22, "semaforo": "ROJO"}, {"kpi": "CONTEO", "s1": null, "s2": null, "s3": null, "s4": 8.93, "promedio": 8.93, "semaforo": "AMARILLO"}, {"kpi": "COBERTURA", "s1": 8.2, "s2": 9.38, "s3": 9.45, "s4": 9.24, "promedio": 9.07, "semaforo": "AMARILLO"}], "OXXO": [{"kpi": "MARCAPRECIOS", "s1": 9.28, "s2": 9.28, "s3": 9.78, "s4": 9.71, "promedio": 9.51, "semaforo": "VERDE"}, {"kpi": "LAYOUT", "s1": 4.1, "s2": 3.67, "s3": 3.02, "s4": 2.38, "promedio": 3.29, "semaforo": "ROJO"}, {"kpi": "FLYER CONECTADOS", "s1": 8.44, "s2": 6.74, "s3": 8.44, "s4": 7.33, "promedio": 7.74, "semaforo": "NARANJA"}, {"kpi": "HAEDER VUSE", "s1": 10.0, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "CROSS TT", "s1": null, "s2": null, "s3": 10.0, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "CROSS VIBRIN", "s1": null, "s2": null, "s3": 9.9, "s4": 9.9, "promedio": 9.9, "semaforo": "VERDE"}, {"kpi": "DISPENSER", "s1": 10.0, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "DISPENSER CONTAMINADO", "s1": 10.0, "s2": 10.0, "s3": 10.0, "s4": 10.0, "promedio": 10.0, "semaforo": "VERDE"}, {"kpi": "QR", "s1": 6.26, "s2": 6.4, "s3": 6.12, "s4": 6.4, "promedio": 6.29, "semaforo": "ROJO"}, {"kpi": "CONTEO", "s1": null, "s2": null, "s3": null, "s4": 9.81, "promedio": 9.81, "semaforo": "VERDE"}, {"kpi": "COBERTURA", "s1": 7.88, "s2": 9.37, "s3": 9.35, "s4": 8.37, "promedio": 8.74, "semaforo": "AMARILLO"}]}, "evolutivo": {"AVA": {"s1": 8.84, "s2": 9.53, "s3": 9.19, "s4": 9.37, "promedio": 9.29, "trend": "▲ +0.18"}, "TAMBO": {"s1": 8.47, "s2": 8.18, "s3": 8.54, "s4": 8.71, "promedio": 8.62, "trend": "▲ +0.17"}, "PRIMAX": {"s1": 7.77, "s2": 7.81, "s3": 8.34, "s4": 8.14, "promedio": 8.13, "trend": "▼ -0.2"}, "REPSOL": {"s1": 8.48, "s2": 8.53, "s3": 8.38, "s4": 8.55, "promedio": 8.52, "trend": "▲ +0.17"}, "OXXO": {"s1": 8.24, "s2": 8.18, "s3": 8.66, "s4": 8.54, "promedio": 8.66, "trend": "▼ -0.12"}}, "criticos": [{"num": 1, "cadena": "TAMBO", "kpi": "LAYOUT", "score": 2.86, "estado": "CRITICO", "accion": "Refuerzo por parte de BAT a la cuenta desde el día 1."}, {"num": 2, "cadena": "PRIMAX", "kpi": "LAYOUT", "score": 3.38, "estado": "CRITICO", "accion": "Refuerzo por parte de BAT a la cuenta desde el día 1."}, {"num": 3, "cadena": "OXXO", "kpi": "LAYOUT", "score": 3.44, "estado": "CRITICO", "accion": "Refuerzo por parte de BAT a la cuenta desde el día 1."}, {"num": 4, "cadena": "AVA", "kpi": "LAYOUT", "score": 3.49, "estado": "CRITICO", "accion": "Refuerzo por parte de BAT a la cuenta desde el día 1."}, {"num": 5, "cadena": "REPSOL", "kpi": "LAYOUT", "score": 4.51, "estado": "CRITICO", "accion": "Refuerzo por parte de BAT a la cuenta desde el día 1."}, {"num": 6, "cadena": "TAMBO", "kpi": "FLYER CONECTADOS", "score": 5.95, "estado": "CRITICO", "accion": "Entrega de stock adicionales por parte BAT"}, {"num": 7, "cadena": "REPSOL", "kpi": "QR", "score": 5.98, "estado": "CRITICO", "accion": "Entrega de stock adicionales por parte BAT"}]}};
+
+const MES_LABELS = {FEB:'FEBRERO 2026', MAR:'MARZO 2026', ABR:'ABRIL 2026'};
+const CADENA_COLORS = {AVA:'#8E44AD',TAMBO:'#1B2F6E',PRIMAX:'#0E9B6A',REPSOL:'#C9A000',OXXO:'#C93B3B'};
+const SEM_COLORS = {VERDE:'#0E9B6A',AMARILLO:'#C9A000',NARANJA:'#D97706',ROJO:'#C93B3B','N/A':'#9CA3AF'};
+const SEM_PILL = {VERDE:'pill-verde',AMARILLO:'pill-amarillo',NARANJA:'pill-naranja',ROJO:'pill-rojo','N/A':'pill-na'};
+
+let curMes = 'MAY';
+let curCadena = null;
+
+// Inject MAYO into DATA
+DATA['MAY'] = { kpis: MAYO_DATA };
+
+function semColor(v) {
+  if(v===null||v===undefined) return '#9CA3AF';
+  if(v>=9.5) return '#0E9B6A';
+  if(v>=8.5) return '#C9A000';
+  if(v>=7.0) return '#D97706';
+  return '#C93B3B';
+}
+function semLabel(v) {
+  if(v===null||v===undefined) return 'N/A';
+  if(v>=9.5) return 'VERDE';
+  if(v>=8.5) return 'AMARILLO';
+  if(v>=7.0) return 'NARANJA';
+  return 'ROJO';
+}
+function semPill(v) { return SEM_PILL[semLabel(v)] || 'pill-na'; }
+
+function renderEvolucion() {
+  const evol = DATA[curMes].evolutivo;
+  const cadenas = ['AVA','TAMBO','PRIMAX','REPSOL','OXXO'];
+  const html = cadenas.map(cad => {
+    const d = evol[cad];
+    if(!d) return '';
+    const scores = [d.s1,d.s2,d.s3,d.s4].filter(s=>s!==null);
+    const maxS = Math.max(...scores.filter(s=>s), 10);
+    const bars = [d.s1,d.s2,d.s3,d.s4].map((s,i) =>
+      `<div class="evol-bar" style="height:${s?Math.round(s/10*30):3}px;background:${s?semColor(s)+'88':semColor(s)+'33'};border:${i===3?'1.5px solid '+semColor(s):'none'}" title="S${i+1}:${s||'N/A'}"></div>`
+    ).join('');
+    const trendColor = d.trend.includes('▲') ? '#0E9B6A' : d.trend.includes('▼') ? '#C93B3B' : '#6B7A99';
+    return `<div class="evol-card" style="--cc:${CADENA_COLORS[cad]}">
+      <div class="evol-cadena" style="color:${CADENA_COLORS[cad]}">${cad}</div>
+      <div class="evol-score" style="color:${semColor(d.promedio)}">${d.promedio ?? 'N/A'}</div>
+      <div class="evol-trend" style="color:${trendColor}">${d.trend || ''}</div>
+      <div class="evol-bars">${bars}</div>
+      <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-top:2px"><span>S1</span><span>S2</span><span>S3</span><span>S4</span></div>
+    </div>`;
+  }).join('');
+  document.getElementById('evolucionGrid').innerHTML = html;
+}
+
+function renderCadenaCards() {
+  const cadenas = ['AVA','TAMBO','PRIMAX','REPSOL','OXXO'];
+  const html = cadenas.map(cad => {
+    const kpis = DATA[curMes].kpis[cad] || [];
+    const proms = kpis.map(k=>k.promedio).filter(p=>p!==null);
+    const avg = proms.length ? (proms.reduce((a,b)=>a+b,0)/proms.length).toFixed(2) : null;
+    const evol = DATA[curMes].evolutivo[cad];
+    const trend = evol ? evol.trend : '';
+    const trendColor = trend.includes('▲') ? '#0E9B6A' : trend.includes('▼') ? '#C93B3B' : '#6B7A99';
+    const semDots = kpis.map(k =>
+      `<div class="sem-mini" style="background:${SEM_COLORS[k.semaforo]||'#9CA3AF'}" title="${k.kpi}: ${k.promedio??'N/A'}"></div>`
+    ).join('');
+    const isSelected = curCadena === cad;
+    return `<div class="cadena-card ${isSelected?'selected':''}" style="--cc:${CADENA_COLORS[cad]}" onclick="selectCadena('${cad}')">
+      <div class="cadena-name" style="color:${CADENA_COLORS[cad]}">${cad}</div>
+      <div class="cadena-score" style="color:${avg?semColor(parseFloat(avg)):'var(--muted)'}">${avg ?? 'N/A'}</div>
+      <div class="cadena-trend" style="color:${trendColor}">${trend}</div>
+      <div class="cadena-sems">${semDots}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('cadenaCards').innerHTML = html;
+}
+
+function selectCadena(cad) {
+  curCadena = cad;
+  renderCadenaCards();
+  renderKPIDetail();
+}
+
+function renderKPIDetail() {
+  if(!curCadena) return;
+  const kpis = DATA[curMes].kpis[curCadena] || [];
+  document.getElementById('cadenaLabel').textContent = curCadena;
+  const rows = kpis.map(k => {
+    const p = k.promedio;
+    const pct = p ? Math.min(p/10*100,100).toFixed(0) : 0;
+    const weeks = [k.s1,k.s2,k.s3,k.s4].map(s =>
+      s !== null ? `<span style="display:inline-block;width:28px;text-align:center;font-size:10px;font-weight:700;color:${semColor(s)}">${s}</span>` : `<span style="display:inline-block;width:28px;text-align:center;font-size:10px;color:var(--muted)">—</span>`
+    ).join('');
+    return `<tr>
+      <td style="font-weight:600;color:var(--navy)">${k.kpi}</td>
+      <td>${weeks}</td>
+      <td>
+        <div class="score-bar-wrap">
+          <div class="score-bar-bg"><div class="score-bar-fill" style="width:${pct}%;background:${p?semColor(p):'#9CA3AF'}"></div></div>
+          <span class="pill ${semPill(p)}">${p ?? 'N/A'}</span>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+  document.getElementById('kpiDetail').innerHTML = `
+    <table class="sem-table">
+      <thead><tr><th>KPI</th><th>S1 &nbsp; S2 &nbsp; S3 &nbsp; S4</th><th>Promedio</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+function renderCriticos() {
+  const criticos = DATA[curMes].criticos || [];
+  if(!criticos.length) {
+    document.getElementById('criticosTable').innerHTML = '<div style="color:var(--muted);font-size:12px;padding:12px">Sin datos de KPIs críticos</div>';
+    return;
+  }
+  const rows = criticos.map(c => `
+    <tr>
+      <td style="font-weight:700;color:var(--muted);text-align:center">${c.num}</td>
+      <td><span style="font-weight:700;color:${CADENA_COLORS[c.cadena]||'var(--navy)'}">${c.cadena}</span></td>
+      <td style="font-weight:600;color:var(--text2)">${c.kpi}</td>
+      <td><span class="pill pill-rojo">${c.score}</span></td>
+      <td style="font-size:11px;color:var(--muted);max-width:200px">${c.accion}</td>
+    </tr>`).join('');
+  document.getElementById('criticosTable').innerHTML = `
+    <table class="crit-table">
+      <thead><tr><th>#</th><th>Cadena</th><th>KPI</th><th>Puntaje</th><th>Acción</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+function render() {
+  document.getElementById('mesBadge').textContent = MES_LABELS[curMes];
+  document.getElementById('footerDate').textContent = 'Dashboard de Ejecución en Campo — ' + MES_LABELS[curMes];
+  renderEvolucion();
+  renderCadenaCards();
+  if(curCadena) renderKPIDetail();
+  else document.getElementById('kpiDetail').innerHTML = '<div style="color:var(--muted);font-size:13px;padding:16px 0">Haz clic en una cadena para ver sus KPIs</div>';
+  renderCriticos();
+}
+
+document.querySelectorAll('.month-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    curMes = btn.dataset.mes;
+    curCadena = null;
+    document.querySelectorAll('.month-btn').forEach(b => {
+      b.className = 'month-btn ' + (b.dataset.mes===curMes?'active':'inactive');
+    });
+    render();
+  });
+});
+
+render();
+</script>
+</body>
+</html>
