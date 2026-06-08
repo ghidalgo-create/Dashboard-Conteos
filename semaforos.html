@@ -312,17 +312,37 @@ function render() {
 document.querySelectorAll('.month-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     curMes = btn.dataset.mes;
+    onMesChange(curMes);
     curCadena = null;
     document.querySelectorAll('.month-btn').forEach(b => {
       b.className = 'month-btn ' + (b.dataset.mes===curMes?'active':'inactive');
     });
-    render();
+    render(); onMesChange(curMes);
   });
 });
 
 render();
 
 // ── TIENDA SEARCH ──
+// Reset tienda search when month changes
+const _origSetMes = window.onMesChange || function(){};
+function onMesChange(mes){
+  clearTienda();
+  const card = document.getElementById('tiendaSearchCard');
+  if(mes !== 'MAY'){
+    document.getElementById('tiendaResult').innerHTML =
+      '<div style="color:var(--muted);font-size:13px;padding:10px 0">⚠️ El detalle por tienda solo está disponible para <strong>Mayo 2026</strong>.</div>';
+    document.getElementById('tiendaInput').disabled = true;
+    document.getElementById('tiendaInput').placeholder = 'Solo disponible para Mayo 2026';
+    document.getElementById('tiendaInput').style.background = '#f5f5f5';
+  } else {
+    document.getElementById('tiendaInput').disabled = false;
+    document.getElementById('tiendaInput').placeholder = 'Buscar tienda… ej: TAMBO - LARCO';
+    document.getElementById('tiendaInput').style.background = '#fff';
+    document.getElementById('tiendaResult').innerHTML = 'Ingresa el nombre de una tienda para ver su detalle por semana.';
+  }
+}
+
 function semColor2(v){
   if(v===null||v===undefined) return '#9CA3AF';
   if(v>=9.5) return '#0E9B6A';
@@ -339,6 +359,7 @@ function semLabel(v){
 }
 
 function onTiendaSearch(){
+  if(document.getElementById('tiendaInput').disabled) return;
   const q = document.getElementById('tiendaInput').value.trim().toLowerCase();
   const drop = document.getElementById('tiendaDropdown');
   if(q.length < 2){ drop.style.display='none'; return; }
