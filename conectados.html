@@ -206,7 +206,7 @@ select:focus{border-color:#1a2b3c}
     <div class="card-hd"><div class="card-hd-title">Evolutivo 2026 — % Promedio de Avance de Cuota por Promotor</div></div>
     <div style="max-height:460px;overflow-y:auto">
       <table class="pos-table" style="width:100%">
-        <thead><tr><th>Promotor</th><th>Marzo</th><th>Abril</th><th>Mayo</th><th>Junio</th></tr></thead>
+        <thead><tr><th>Promotor</th><th style="text-align:center">Marzo</th><th style="text-align:center">Abril</th><th style="text-align:center">Mayo</th><th style="text-align:center">Junio</th></tr></thead>
         <tbody id="yearPromBody"></tbody>
       </table>
     </div>
@@ -394,6 +394,7 @@ function renderYearProm() {
       if (fC && r.CADENA !== fC) return false;
       if (fK && r.CATEGORIA !== fK) return false;
       if (fP && r.PROMOTOR !== fP) return false;
+      if (r.PROMOTOR && r.PROMOTOR.trim().toUpperCase() === 'NO SE HACE PROMOTORIA') return false;
       return true;
     });
     const sums = {};
