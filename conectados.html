@@ -203,8 +203,13 @@ select:focus{border-color:#1a2b3c}
     <div style="height:340px"><canvas id="cYearEvol"></canvas></div>
   </div>
   <div class="card" id="yearPromCard" style="display:none;margin-bottom:20px">
-    <div class="card-hd"><div class="card-hd-title">Evolutivo 2026 — Cantidad de Tiendas por Promotor que Llegaron a Cuota</div></div>
-    <div style="height:340px"><canvas id="cYearProm"></canvas></div>
+    <div class="card-hd"><div class="card-hd-title">Evolutivo 2026 — % Promedio de Avance de Cuota por Promotor</div></div>
+    <div style="max-height:460px;overflow-y:auto">
+      <table class="pos-table" style="width:100%">
+        <thead><tr><th>Promotor</th><th>Marzo</th><th>Abril</th><th>Mayo</th><th>Junio</th></tr></thead>
+        <tbody id="yearPromBody"></tbody>
+      </table>
+    </div>
   </div>
   <div id="monthSections">
   <div class="kpi-row">
@@ -383,7 +388,6 @@ function renderYearProm() {
   const fC = document.getElementById('fCad').value;
   const fK = document.getElementById('fCat').value;
   const fP = document.getElementById('fProm').value;
-  const labels = ['Marzo','Abril','Mayo','Junio'];
 
   const byMonth = ALL_MESES.map(mes => {
     const data = dataOf(mes).filter(r => {
@@ -392,51 +396,40 @@ function renderYearProm() {
       if (fP && r.PROMOTOR !== fP) return false;
       return true;
     });
-    const gan = {};
-    data.forEach(r => { if (r.AVANCE >= r.CUOTA) gan[r.PROMOTOR] = (gan[r.PROMOTOR]||0)+1; });
-    return gan;
-  });
-
-  let promoters, restSet = new Set();
-  if (fP) {
-    promoters = [fP];
-  } else {
-    const totals = {};
-    byMonth.forEach(g => Object.entries(g).forEach(([p,v]) => totals[p]=(totals[p]||0)+v));
-    const sorted = Object.entries(totals).sort((a,b)=>b[1]-a[1]).map(([p])=>p);
-    promoters = sorted.slice(0,7);
-    const rest = sorted.slice(7);
-    if (rest.length) { promoters.push('__OTROS__'); restSet = new Set(rest); }
-  }
-
-  const datasets = promoters.map((p,i) => {
-    const data = byMonth.map(g => {
-      if (p === '__OTROS__') {
-        return Object.entries(g).filter(([k])=>restSet.has(k)).reduce((s,[,v])=>s+v,0);
-      }
-      return g[p] || 0;
+    const sums = {};
+    data.forEach(r => {
+      if (!sums[r.PROMOTOR]) sums[r.PROMOTOR] = {tot:0, n:0};
+      if (r.CUOTA > 0) { sums[r.PROMOTOR].tot += (r.AVANCE / r.CUOTA); sums[r.PROMOTOR].n += 1; }
     });
-    return {
-      label: p === '__OTROS__' ? 'Otros' : p,
-      data,
-      borderColor: PAL[i % PAL.length],
-      backgroundColor: PAL[i % PAL.length],
-      tension: .3,
-      spanGaps: true,
-      pointRadius: 4
-    };
+    const avgs = {};
+    Object.entries(sums).forEach(([p,v]) => avgs[p] = v.n ? v.tot / v.n : null);
+    return avgs;
   });
 
-  mk('cYearProm', {
-    type: 'line',
-    data: { labels, datasets },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, color: '#666' } } },
-      scales: { y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' } }, x: { grid: { display: false } } }
-    }
+  const allProms = new Set();
+  byMonth.forEach(m => Object.keys(m).forEach(p => allProms.add(p)));
+
+  const overallAvg = {};
+  allProms.forEach(p => {
+    const vals = byMonth.map(m => m[p]).filter(v => v != null);
+    overallAvg[p] = vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : -1;
   });
+  const promList = [...allProms].sort((a,b) => overallAvg[b] - overallAvg[a]);
+
+  const rowsHtml = promList.map(p => {
+    const cells = byMonth.map(m => {
+      const v = m[p];
+      if (v == null) return '<td style="text-align:center;color:#ccc">—</td>';
+      const pct = (v*100).toFixed(1);
+      const col = pctColor(v);
+      return `<td style="text-align:center;font-weight:700;color:${col}">${pct}%</td>`;
+    }).join('');
+    return `<tr><td style="font-weight:700">${p}</td>${cells}</tr>`;
+  }).join('');
+
+  document.getElementById('yearPromBody').innerHTML = rowsHtml || '<tr><td colspan="5" style="text-align:center;color:#999;padding:16px">Sin datos con estos filtros</td></tr>';
 }
+
 
 function buildPromSelect() {
   const sel = document.getElementById('fProm');
