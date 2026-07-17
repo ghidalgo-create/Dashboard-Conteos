@@ -139,7 +139,7 @@ select:focus{border-color:#1a2b3c}
 </div>
 <div class="filter-bar">
   <div class="fg"><label>Región</label>
-    <select id="fReg" onchange="render();buildVenc();if(yearMode)renderYearEvol();">
+    <select id="fReg" onchange="if(yearMode){renderYear();}else{render();buildVenc();}">
       <option value="">Todas (Lima · KC · NKC)</option>
       <option value="LIMA">Lima</option>
       <option value="KC">KC</option>
@@ -147,17 +147,17 @@ select:focus{border-color:#1a2b3c}
     </select>
   </div>
   <div class="fg"><label>Promotor</label>
-    <select id="fProm" onchange="render();buildVenc();if(yearMode)renderYearEvol();"><option value="">Todos los Promotores</option></select>
+    <select id="fProm" onchange="if(yearMode){renderYear();}else{render();buildVenc();}"><option value="">Todos los Promotores</option></select>
   </div>
   <div class="fg"><label>Categoría</label>
-    <select id="fCat" onchange="render();buildVenc();if(yearMode)renderYearEvol();">
+    <select id="fCat" onchange="if(yearMode){renderYear();}else{render();buildVenc();}">
       <option value="">VUSE + VELO</option>
       <option value="VUSE">VUSE</option>
       <option value="VELO">VELO</option>
     </select>
   </div>
   <div class="fg"><label>KKAA / Cadena</label>
-    <select id="fCad" onchange="render();buildVenc();if(yearMode)renderYearEvol();"><option value="">Todas las cadenas</option></select>
+    <select id="fCad" onchange="if(yearMode){renderYear();}else{render();buildVenc();}"><option value="">Todas las cadenas</option></select>
   </div>
   <button class="btn-limpiar" onclick="resetF()">↺ Limpiar filtros</button>
 </div>
@@ -205,13 +205,15 @@ select:focus{border-color:#1a2b3c}
     <div class="card"><div class="card-hd"><div class="card-hd-title">Conteo Parcial por Promotor</div></div><div class="ch ch200"><canvas id="cParcProm"></canvas></div></div>
     <div class="card"><div class="card-hd"><div class="card-hd-title">Conteo Parcial por KKAA</div></div><div class="ch ch200"><canvas id="cParcKkaa"></canvas></div></div>
   </div>
-  <div class="card" style="margin-bottom:14px">
-    <div class="card-hd"><div class="card-hd-title">SKUs por Mes de Vencimiento <span class="yr-tag yr26">2026</span></div></div>
-    <div class="venc-wrap"><table class="vtable" id="t2026"></table></div>
-  </div>
-  <div class="card" style="margin-bottom:14px">
-    <div class="card-hd"><div class="card-hd-title">SKUs por Mes de Vencimiento <span class="yr-tag yr27">2027</span></div></div>
-    <div class="venc-wrap"><table class="vtable" id="t2027"></table></div>
+  <div id="vencSection">
+    <div class="card" style="margin-bottom:14px">
+      <div class="card-hd"><div class="card-hd-title">SKUs por Mes de Vencimiento <span class="yr-tag yr26">2026</span></div></div>
+      <div class="venc-wrap"><table class="vtable" id="t2026"></table></div>
+    </div>
+    <div class="card" style="margin-bottom:14px">
+      <div class="card-hd"><div class="card-hd-title">SKUs por Mes de Vencimiento <span class="yr-tag yr27">2027</span></div></div>
+      <div class="venc-wrap"><table class="vtable" id="t2027"></table></div>
+    </div>
   </div>
 </div>
 <script>
@@ -301,10 +303,15 @@ function buildCadenaSelect(){
   CADENAS.forEach(c=>{const o=document.createElement('option');o.value=c;o.text=c;if(c===cur)o.selected=true;sel.appendChild(o);});
 }
 let yearMode=false;
+const ALL_MESES=['MARZO','ABRIL','MAYO','JUNIO'];
+function baseOf(m){return m==='JUNIO'?BASE_JUNIO:m==='MAYO'?BASE_MAYO:m==='ABRIL'?BASE_ABRIL:BASE_MARZO;}
+function noefOf(m){return m==='JUNIO'?NOEF_JUNIO:m==='MAYO'?NOEF_MAYO:m==='ABRIL'?NOEF_ABRIL:NOEF_MARZO;}
+function parcOf(m){return m==='JUNIO'?PARC_JUNIO:m==='MAYO'?PARC_MAYO:m==='ABRIL'?PARC_ABRIL:PARC_MARZO;}
 function setMonth(m,el){
   yearMode=false;
   document.getElementById('yearEvolCard').style.display='none';
-  document.querySelector('.kpi-row').style.display='';
+  document.getElementById('vencSection').style.display='';
+  document.getElementById('weekBar').style.display='';
   curMonth=m; curWeek='';
   document.querySelectorAll('.m-btn').forEach(b=>b.classList.remove('active','active-gold'));
   el.classList.add(m==='JUNIO'?'active-gold':'active');
@@ -319,34 +326,31 @@ function setWeek(w,el){
 }
 function resetF(){
   ['fReg','fProm','fCat','fCad'].forEach(id=>document.getElementById(id).value='');
-  curWeek=''; buildWeekBtns(); render(); buildVenc();
-  if(yearMode) renderYearEvol();
+  curWeek=''; buildWeekBtns();
+  if(yearMode) renderYear(); else { render(); buildVenc(); }
 }
 function toggleYear(el){
   yearMode=true;
   document.querySelectorAll('.m-btn').forEach(b=>b.classList.remove('active','active-gold'));
   el.classList.add('active-gold');
-  document.querySelector('.kpi-row').style.display='none';
+  document.getElementById('weekBar').style.display='none';
+  document.getElementById('vencSection').style.display='none';
   document.getElementById('yearEvolCard').style.display='block';
-  renderYearEvol();
+  renderYear();
 }
 function computeMonthKPIs(mes){
-  const baseAll = mes==='JUNIO'?BASE_JUNIO:mes==='MAYO'?BASE_MAYO:mes==='ABRIL'?BASE_ABRIL:BASE_MARZO;
-  const noefAll = mes==='JUNIO'?NOEF_JUNIO:mes==='MAYO'?NOEF_MAYO:mes==='ABRIL'?NOEF_ABRIL:NOEF_MARZO;
-  const parcAll = mes==='JUNIO'?PARC_JUNIO:mes==='MAYO'?PARC_MAYO:mes==='ABRIL'?PARC_ABRIL:PARC_MARZO;
   const fR=document.getElementById('fReg').value,fP=document.getElementById('fProm').value,fC=document.getElementById('fCat').value,fK=document.getElementById('fCad').value;
-  const base=baseAll.filter(r=>{if(fR&&r.REGION!==fR)return false;if(fP&&r.PROMOTOR!==fP)return false;if(fC&&r.FORMATO_CAT!==fC)return false;if(fK&&r.CADENA!==fK)return false;return true;});
-  const noef=noefAll.filter(r=>{if(fR&&r.REGION!==fR)return false;if(fP&&r.PROMOTOR!==fP)return false;if(fK&&r.CADENA_SHORT!==fK)return false;return true;});
-  const parc=parcAll.filter(r=>{if(fR&&r.REGION!==fR)return false;if(fP&&r.PROMOTOR!==fP)return false;if(fK&&r.CADENA_SHORT!==fK)return false;return true;});
+  const base=baseOf(mes).filter(r=>{if(fR&&r.REGION!==fR)return false;if(fP&&r.PROMOTOR!==fP)return false;if(fC&&r.FORMATO_CAT!==fC)return false;if(fK&&r.CADENA!==fK)return false;return true;});
+  const noef=noefOf(mes).filter(r=>{if(fR&&r.REGION!==fR)return false;if(fP&&r.PROMOTOR!==fP)return false;if(fK&&r.CADENA_SHORT!==fK)return false;return true;});
+  const parc=parcOf(mes).filter(r=>{if(fR&&r.REGION!==fR)return false;if(fP&&r.PROMOTOR!==fP)return false;if(fK&&r.CADENA_SHORT!==fK)return false;return true;});
   const ef=new Set(base.map(r=>r.STORE_ID)).size, noEf=noef.length, parcial=parc.length;
   const asig=ef+noEf;
   const tasa=asig>0?+(ef/asig*100).toFixed(1):0;
   return {asig,ef,noEf,tasa,parcial};
 }
 function renderYearEvol(){
-  const meses=['MARZO','ABRIL','MAYO','JUNIO'];
   const labels=['Marzo','Abril','Mayo','Junio'];
-  const rows=meses.map(computeMonthKPIs);
+  const rows=ALL_MESES.map(computeMonthKPIs);
   mk('cYearEvol',{
     type:'bar',
     data:{labels,datasets:[
@@ -364,6 +368,51 @@ function renderYearEvol(){
       }
     }
   });
+}
+function renderYear(){
+  const fR=document.getElementById('fReg').value,fP=document.getElementById('fProm').value,fC=document.getElementById('fCat').value,fK=document.getElementById('fCad').value;
+  let base=[],noef=[],parc=[];
+  ALL_MESES.forEach(m=>{
+    base=base.concat(baseOf(m).filter(r=>{if(fR&&r.REGION!==fR)return false;if(fP&&r.PROMOTOR!==fP)return false;if(fC&&r.FORMATO_CAT!==fC)return false;if(fK&&r.CADENA!==fK)return false;return true;}));
+    noef=noef.concat(noefOf(m).filter(r=>{if(fR&&r.REGION!==fR)return false;if(fP&&r.PROMOTOR!==fP)return false;if(fK&&r.CADENA_SHORT!==fK)return false;return true;}));
+    parc=parc.concat(parcOf(m).filter(r=>{if(fR&&r.REGION!==fR)return false;if(fP&&r.PROMOTOR!==fP)return false;if(fK&&r.CADENA_SHORT!==fK)return false;return true;}));
+  });
+  const pdvSet=new Set(base.map(r=>r.STORE_ID));
+  const totalEf=pdvSet.size, totalNoEf=noef.length, totalParc=parc.length;
+  const totalAsig=totalEf+totalNoEf;
+  const tasa=totalAsig>0?(totalEf/totalAsig*100).toFixed(1)+'%':'—';
+  document.getElementById('kAsig').textContent=totalAsig.toLocaleString();
+  document.getElementById('kEf').textContent=totalEf.toLocaleString();
+  document.getElementById('kNoEf').textContent=totalNoEf;
+  document.getElementById('kTasa').textContent=tasa;
+  document.getElementById('kParc').textContent=totalParc;
+  document.getElementById('kNoEfSub').textContent=`Total 2026: ${totalNoEf}`;
+  document.getElementById('kParcSub').textContent=`Total 2026: ${totalParc}`;
+  const regs=fR?[fR]:['LIMA','KC','NKC'];
+  const regEf={}, regNe={};
+  regs.forEach(r=>{regEf[r]=new Set(base.filter(x=>x.REGION===r).map(x=>x.STORE_ID)).size; regNe[r]=noef.filter(x=>x.REGION===r).length;});
+  buildRegCards(regs,regEf,regNe);
+  buildDonut(Math.max(0,totalEf-totalParc),totalParc,totalNoEf,tasa);
+  const mMap={}; noef.forEach(r=>{const m=r['MOTIVO NO EFECTIVO'];mMap[m]=(mMap[m]||0)+1;});
+  const mArr=Object.entries(mMap).sort((a,b)=>b[1]-a[1]);
+  mk('cMotivos',{type:'bar',data:{labels:mArr.map(([k])=>k.length>28?k.slice(0,28)+'…':k),datasets:[{data:mArr.map(([,v])=>v),backgroundColor:PAL,borderRadius:4}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(0,0,0,0.04)'}},y:{grid:{display:false},ticks:{font:{size:10}}}}}});
+  const kkMap={}; base.forEach(r=>{if(!kkMap[r.CADENA])kkMap[r.CADENA]=new Set();kkMap[r.CADENA].add(r.STORE_ID);});
+  const kkArr=Object.entries(kkMap).map(([k,v])=>[k,v.size]).sort((a,b)=>b[1]-a[1]);
+  mk('cKkaa',{type:'bar',data:{labels:kkArr.map(([k])=>k),datasets:[{data:kkArr.map(([,v])=>v),backgroundColor:PAL,borderRadius:5,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{grid:{color:'rgba(0,0,0,0.04)'}},x:{grid:{display:false}}}}});
+  const mesLabels=['Marzo','Abril','Mayo','Junio'];
+  const vuseM=ALL_MESES.map(m=>{const f=baseOf(m).filter(r=>{if(fR&&r.REGION!==fR)return false;if(fP&&r.PROMOTOR!==fP)return false;if(fK&&r.CADENA!==fK)return false;return true;});return fC==='VELO'?0:f.filter(r=>r.FORMATO_CAT==='VUSE').reduce((a,r)=>a+r.CANT,0);});
+  const veloM=ALL_MESES.map(m=>{const f=baseOf(m).filter(r=>{if(fR&&r.REGION!==fR)return false;if(fP&&r.PROMOTOR!==fP)return false;if(fK&&r.CADENA!==fK)return false;return true;});return fC==='VUSE'?0:f.filter(r=>r.FORMATO_CAT==='VELO').reduce((a,r)=>a+r.CANT,0);});
+  mk('cSemana',{type:'bar',data:{labels:mesLabels,datasets:[{label:'VUSE',data:vuseM,backgroundColor:'#2185d0',borderRadius:4},{label:'VELO',data:veloM,backgroundColor:'#f2711c',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#666',boxWidth:10}}},scales:{y:{grid:{color:'rgba(0,0,0,0.04)'}},x:{grid:{display:false}}}}});
+  const skuMap={}; base.forEach(r=>{skuMap[r.SKU]=(skuMap[r.SKU]||0)+r.CANT;});
+  const skuArr=Object.entries(skuMap).sort((a,b)=>b[1]-a[1]).slice(0,7);
+  mk('cSku',{type:'bar',data:{labels:skuArr.map(([k])=>k.length>24?k.slice(0,24)+'…':k),datasets:[{data:skuArr.map(([,v])=>v),backgroundColor:'#2185d0',borderRadius:4}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(0,0,0,0.04)'}},y:{grid:{display:false},ticks:{font:{size:10}}}}}});
+  const ppMap={}; parc.forEach(r=>{ppMap[r.PROMOTOR]=(ppMap[r.PROMOTOR]||0)+1;});
+  const ppArr=Object.entries(ppMap).sort((a,b)=>b[1]-a[1]).slice(0,9);
+  mk('cParcProm',{type:'bar',data:{labels:ppArr.map(([k])=>k.split(' ')[0]),datasets:[{data:ppArr.map(([,v])=>v),backgroundColor:'#fbbd08',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{grid:{color:'rgba(0,0,0,0.04)'}},x:{grid:{display:false}}}}});
+  const pkMap={}; parc.forEach(r=>{pkMap[r.CADENA_SHORT]=(pkMap[r.CADENA_SHORT]||0)+1;});
+  const pkArr=Object.entries(pkMap).sort((a,b)=>b[1]-a[1]);
+  mk('cParcKkaa',{type:'bar',data:{labels:pkArr.map(([k])=>k),datasets:[{data:pkArr.map(([,v])=>v),backgroundColor:PAL,borderRadius:5,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{grid:{color:'rgba(0,0,0,0.04)'}},x:{grid:{display:false}}}}});
+  renderYearEvol();
 }
 
 Chart.defaults.color='#666'; Chart.defaults.borderColor='rgba(0,0,0,0.06)';
