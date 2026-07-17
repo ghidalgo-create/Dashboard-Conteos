@@ -139,7 +139,7 @@ select:focus{border-color:#1a2b3c}
 </div>
 <div class="filter-bar">
   <div class="fg"><label>Región</label>
-    <select id="fReg" onchange="if(yearMode){renderYearEvol();}else{render();buildVenc();}">
+    <select id="fReg" onchange="if(yearMode){renderYearEvol();renderRecurrentes();}else{render();buildVenc();}">
       <option value="">Todas (Lima · KC · NKC)</option>
       <option value="LIMA">Lima</option>
       <option value="KC">KC</option>
@@ -147,17 +147,17 @@ select:focus{border-color:#1a2b3c}
     </select>
   </div>
   <div class="fg"><label>Promotor</label>
-    <select id="fProm" onchange="if(yearMode){renderYearEvol();}else{render();buildVenc();}"><option value="">Todos los Promotores</option></select>
+    <select id="fProm" onchange="if(yearMode){renderYearEvol();renderRecurrentes();}else{render();buildVenc();}"><option value="">Todos los Promotores</option></select>
   </div>
   <div class="fg"><label>Categoría</label>
-    <select id="fCat" onchange="if(yearMode){renderYearEvol();}else{render();buildVenc();}">
+    <select id="fCat" onchange="if(yearMode){renderYearEvol();renderRecurrentes();}else{render();buildVenc();}">
       <option value="">VUSE + VELO</option>
       <option value="VUSE">VUSE</option>
       <option value="VELO">VELO</option>
     </select>
   </div>
   <div class="fg"><label>KKAA / Cadena</label>
-    <select id="fCad" onchange="if(yearMode){renderYearEvol();}else{render();buildVenc();}"><option value="">Todas las cadenas</option></select>
+    <select id="fCad" onchange="if(yearMode){renderYearEvol();renderRecurrentes();}else{render();buildVenc();}"><option value="">Todas las cadenas</option></select>
   </div>
   <button class="btn-limpiar" onclick="resetF()">↺ Limpiar filtros</button>
 </div>
@@ -170,6 +170,17 @@ select:focus{border-color:#1a2b3c}
   <div class="card" id="yearEvolCard" style="display:none;margin-bottom:20px">
     <div class="card-hd"><div class="card-hd-title">Evolutivo 2026 — Resumen General por Mes</div></div>
     <div style="height:320px"><canvas id="cYearEvol"></canvas></div>
+  </div>
+  <div class="card" id="recurrentesCard" style="display:none;margin-bottom:20px">
+    <div class="card-hd"><div class="card-hd-title">Tiendas con No Efectividad en más de 1 mes (2026)</div></div>
+    <div style="max-height:420px;overflow-y:auto">
+      <table class="vtable" style="width:100%">
+        <thead><tr>
+          <th>POS</th><th>Cadena</th><th>Región</th><th>Meses No Efectivo</th><th># Meses</th><th>Último Motivo</th>
+        </tr></thead>
+        <tbody id="recurrentesBody"></tbody>
+      </table>
+    </div>
   </div>
   <div id="monthSections">
   <div class="kpi-row">
@@ -312,6 +323,7 @@ function parcOf(m){return m==='JUNIO'?PARC_JUNIO:m==='MAYO'?PARC_MAYO:m==='ABRIL
 function setMonth(m,el){
   yearMode=false;
   document.getElementById('yearEvolCard').style.display='none';
+  document.getElementById('recurrentesCard').style.display='none';
   document.getElementById('monthSections').style.display='';
   document.getElementById('vencSection').style.display='';
   document.getElementById('weekBar').style.display='';
@@ -330,7 +342,7 @@ function setWeek(w,el){
 function resetF(){
   ['fReg','fProm','fCat','fCad'].forEach(id=>document.getElementById(id).value='');
   curWeek=''; buildWeekBtns();
-  if(yearMode) renderYearEvol(); else { render(); buildVenc(); }
+  if(yearMode) { renderYearEvol(); renderRecurrentes(); } else { render(); buildVenc(); }
 }
 function toggleYear(el){
   yearMode=true;
@@ -340,7 +352,9 @@ function toggleYear(el){
   document.getElementById('vencSection').style.display='none';
   document.getElementById('monthSections').style.display='none';
   document.getElementById('yearEvolCard').style.display='block';
+  document.getElementById('recurrentesCard').style.display='block';
   renderYearEvol();
+  renderRecurrentes();
 }
 function computeMonthKPIs(mes){
   const fR=document.getElementById('fReg').value,fP=document.getElementById('fProm').value,fC=document.getElementById('fCat').value,fK=document.getElementById('fCad').value;
@@ -373,6 +387,40 @@ function renderYearEvol(){
     }
   });
 }
+function renderRecurrentes(){
+  const fR=document.getElementById('fReg').value,fP=document.getElementById('fProm').value,fK=document.getElementById('fCad').value;
+  const byStore = {};
+  ALL_MESES.forEach(mes=>{
+    const rows = noefOf(mes).filter(r=>{
+      if(fR&&r.REGION!==fR)return false;
+      if(fP&&r.PROMOTOR!==fP)return false;
+      if(fK&&r.CADENA_SHORT!==fK)return false;
+      return true;
+    });
+    rows.forEach(r=>{
+      const key = r['STORE ID'];
+      if(!byStore[key]) byStore[key] = {pos:r.POS, cadena:r.CADENA_SHORT, region:r.REGION, meses:[], motivos:{}};
+      byStore[key].meses.push(mes);
+      byStore[key].motivos[mes] = r['MOTIVO NO EFECTIVO'];
+    });
+  });
+  const list = Object.values(byStore).filter(s=>s.meses.length>1);
+  list.sort((a,b)=>b.meses.length-a.meses.length);
+  const mesShort = {MARZO:'Mar',ABRIL:'Abr',MAYO:'May',JUNIO:'Jun'};
+  const rowsHtml = list.map(s=>{
+    const lastMes = s.meses[s.meses.length-1];
+    return `<tr>
+      <td>${s.pos}</td>
+      <td>${s.cadena}</td>
+      <td>${s.region}</td>
+      <td>${s.meses.map(m=>mesShort[m]).join(', ')}</td>
+      <td><strong>${s.meses.length}</strong></td>
+      <td style="font-size:11px;color:#666">${s.motivos[lastMes]||''}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('recurrentesBody').innerHTML = rowsHtml || '<tr><td colspan="6" style="text-align:center;color:#999;padding:16px">No hay tiendas con no efectividad en más de un mes con estos filtros</td></tr>';
+}
+
 function renderYear(){
   const fR=document.getElementById('fReg').value,fP=document.getElementById('fProm').value,fC=document.getElementById('fCat').value,fK=document.getElementById('fCad').value;
   let base=[],noef=[],parc=[];
