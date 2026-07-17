@@ -167,10 +167,11 @@ select:focus{border-color:#1a2b3c}
       <button class="m-btn" onclick="setMonth('ABRIL',this)">Abril 2026</button>
       <button class="m-btn" onclick="setMonth('MAYO',this)">Mayo 2026</button>
     <button class="m-btn active" onclick="setMonth('JUNIO',this)">Junio 2026</button>
+    <button class="m-btn" id="btnYear" onclick="toggleYear(this)" style="margin-left:6px;border-color:#6435c9;color:#6435c9">Todo 2026</button>
     </div>
   </div>
   <div class="fg"><label>Cadena</label>
-    <select id="fCad" onchange="render()">
+    <select id="fCad" onchange="if(yearMode){renderYearEvol();}else{render();}">
       <option value="">Todas las cadenas</option>
       <option value="TAMBO">TAMBO</option>
       <option value="OXXO">OXXO</option>
@@ -180,7 +181,7 @@ select:focus{border-color:#1a2b3c}
     </select>
   </div>
   <div class="fg"><label>Categoría</label>
-    <select id="fCat" onchange="render()">
+    <select id="fCat" onchange="if(yearMode){renderYearEvol();}else{render();}">
       <option value="">Todas</option>
       <option value="Velo">Velo</option>
       <option value="LS Caps">LS Caps</option>
@@ -188,7 +189,7 @@ select:focus{border-color:#1a2b3c}
     </select>
   </div>
   <div class="fg"><label>Promotor</label>
-    <select id="fProm" onchange="render()"><option value="">Todos los Promotores</option></select>
+    <select id="fProm" onchange="if(yearMode){renderYearEvol();}else{render();}"><option value="">Todos los Promotores</option></select>
   </div>
   <button class="btn-limpiar" onclick="resetF()">↺ Limpiar</button>
 </div>
@@ -197,6 +198,11 @@ select:focus{border-color:#1a2b3c}
 
 <div class="main">
   <div class="sec-title">Resumen General — Conectados</div>
+  <div class="card" id="yearEvolCard" style="display:none;margin-bottom:20px">
+    <div class="card-hd"><div class="card-hd-title">Evolutivo 2026 — % Alcanzaron Cuota por Cadena</div></div>
+    <div style="height:340px"><canvas id="cYearEvol"></canvas></div>
+  </div>
+  <div id="monthSections">
   <div class="kpi-row">
     <div class="kpi kb"><div class="kpi-icon">🔗</div><div class="kpi-val" id="kPos">—</div><div class="kpi-lbl">Total POS</div><div class="kpi-sub">Tiendas con cuota</div></div>
     <div class="kpi kg"><div class="kpi-icon">✅</div><div class="kpi-val" id="kGan">—</div><div class="kpi-lbl">Alcanzaron Cuota</div><div class="kpi-sub">Avance ≥ cuota</div></div>
@@ -261,7 +267,7 @@ select:focus{border-color:#1a2b3c}
       </table>
     </div>
   </div>
-
+  </div>
 
 </div>
 
@@ -285,6 +291,8 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function getData() { return curMonth === 'JUNIO' ? DATA_JUNIO : curMonth === 'MAYO' ? DATA_MAYO : curMonth === 'MARZO' ? DATA_MARZO : DATA_ABRIL; }
+const ALL_MESES = ['MARZO','ABRIL','MAYO','JUNIO'];
+function dataOf(m){ return m==='JUNIO'?DATA_JUNIO:m==='MAYO'?DATA_MAYO:m==='MARZO'?DATA_MARZO:DATA_ABRIL; }
 
 function filtered() {
   const fC = document.getElementById('fCad').value;
@@ -298,7 +306,11 @@ function filtered() {
   });
 }
 
+let yearMode = false;
 function setMonth(m, el) {
+  yearMode = false;
+  document.getElementById('yearEvolCard').style.display = 'none';
+  document.getElementById('monthSections').style.display = '';
   curMonth = m;
   document.querySelectorAll('.m-btn').forEach(b => b.classList.remove('active'));
   el.classList.add('active');
@@ -308,7 +320,57 @@ function setMonth(m, el) {
 }
 function resetF() {
   ['fCad','fCat','fProm'].forEach(id => document.getElementById(id).value = '');
-  render();
+  if (yearMode) renderYearEvol(); else render();
+}
+function toggleYear(el) {
+  yearMode = true;
+  document.querySelectorAll('.m-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('monthSections').style.display = 'none';
+  document.getElementById('yearEvolCard').style.display = 'block';
+  renderYearEvol();
+}
+function ganPctByCadena(mes) {
+  const fC = document.getElementById('fCad').value;
+  const fK = document.getElementById('fCat').value;
+  const fP = document.getElementById('fProm').value;
+  const data = dataOf(mes).filter(r => {
+    if (fC && r.CADENA !== fC) return false;
+    if (fK && r.CATEGORIA !== fK) return false;
+    if (fP && r.PROMOTOR !== fP) return false;
+    return true;
+  });
+  const totByCad = {}, ganByCad = {};
+  data.forEach(r => {
+    totByCad[r.CADENA] = (totByCad[r.CADENA]||0)+1;
+    if (r.AVANCE >= r.CUOTA) ganByCad[r.CADENA] = (ganByCad[r.CADENA]||0)+1;
+  });
+  const out = {};
+  Object.keys(totByCad).forEach(c => out[c] = Math.round((ganByCad[c]||0)/totByCad[c]*100));
+  return out;
+}
+function renderYearEvol() {
+  const labels = ['Marzo','Abril','Mayo','Junio'];
+  const byMonth = ALL_MESES.map(ganPctByCadena);
+  const cadenas = [...new Set(byMonth.flatMap(o => Object.keys(o)))].sort();
+  const datasets = cadenas.map((cad,i) => ({
+    label: cad,
+    data: byMonth.map(o => o[cad] ?? null),
+    borderColor: PAL[i % PAL.length],
+    backgroundColor: PAL[i % PAL.length],
+    tension: .3,
+    spanGaps: true,
+    pointRadius: 4
+  }));
+  mk('cYearEvol', {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, color: '#666' } } },
+      scales: { y: { min: 0, max: 100, grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { callback: v => v + '%' } }, x: { grid: { display: false } } }
+    }
+  });
 }
 function buildPromSelect() {
   const sel = document.getElementById('fProm');
