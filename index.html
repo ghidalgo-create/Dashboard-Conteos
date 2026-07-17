@@ -131,6 +131,7 @@ select:focus{border-color:#1a2b3c}
   <button class="m-btn" onclick="setMonth('ABRIL',this)">Abril 2026</button>
   <button class="m-btn" onclick="setMonth('MAYO',this)">Mayo 2026</button>
   <button class="m-btn active-gold" onclick="setMonth('JUNIO',this)">Junio 2026</button>
+  <button class="m-btn" id="btnYear" onclick="toggleYear(this)" style="margin-left:6px;border-color:#6435c9;color:#6435c9">Todo 2026</button>
 </div>
 <div class="week-bar" id="weekBar">
   <span class="week-lbl">⚡ Filtrar por semana:</span>
@@ -138,7 +139,7 @@ select:focus{border-color:#1a2b3c}
 </div>
 <div class="filter-bar">
   <div class="fg"><label>Región</label>
-    <select id="fReg" onchange="render();buildVenc();">
+    <select id="fReg" onchange="render();buildVenc();if(yearMode)renderYearEvol();">
       <option value="">Todas (Lima · KC · NKC)</option>
       <option value="LIMA">Lima</option>
       <option value="KC">KC</option>
@@ -146,17 +147,17 @@ select:focus{border-color:#1a2b3c}
     </select>
   </div>
   <div class="fg"><label>Promotor</label>
-    <select id="fProm" onchange="render();buildVenc();"><option value="">Todos los Promotores</option></select>
+    <select id="fProm" onchange="render();buildVenc();if(yearMode)renderYearEvol();"><option value="">Todos los Promotores</option></select>
   </div>
   <div class="fg"><label>Categoría</label>
-    <select id="fCat" onchange="render();buildVenc();">
+    <select id="fCat" onchange="render();buildVenc();if(yearMode)renderYearEvol();">
       <option value="">VUSE + VELO</option>
       <option value="VUSE">VUSE</option>
       <option value="VELO">VELO</option>
     </select>
   </div>
   <div class="fg"><label>KKAA / Cadena</label>
-    <select id="fCad" onchange="render();buildVenc();"><option value="">Todas las cadenas</option></select>
+    <select id="fCad" onchange="render();buildVenc();if(yearMode)renderYearEvol();"><option value="">Todas las cadenas</option></select>
   </div>
   <button class="btn-limpiar" onclick="resetF()">↺ Limpiar filtros</button>
 </div>
@@ -173,7 +174,11 @@ select:focus{border-color:#1a2b3c}
     <div class="kpi kt"><div class="kpi-icon">📊</div><div class="kpi-val" id="kTasa">—</div><div class="kpi-lbl">Tasa de Efectividad</div><div class="kpi-sub">Efectivos / Asignados</div></div>
     <div class="kpi ko"><div class="kpi-icon">⚡</div><div class="kpi-val" id="kParc">—</div><div class="kpi-lbl">Conteo Parcial</div><div class="kpi-sub" id="kParcSub">—</div></div>
   </div>
-  <div class="charts-row r2">
+  <div class="card" id="yearEvolCard" style="display:none;margin-bottom:20px">
+    <div class="card-hd"><div class="card-hd-title">Evolutivo 2026 — Resumen General por Mes</div></div>
+    <div style="height:320px"><canvas id="cYearEvol"></canvas></div>
+  </div>
+  <div class="charts-row r2" id="normalSections">
     <div class="card">
       <div class="card-hd"><div class="card-hd-title">Efectividad por Región</div></div>
       <div class="region-grid" id="regCards"></div>
@@ -295,7 +300,11 @@ function buildCadenaSelect(){
   sel.innerHTML='<option value="">Todas las cadenas</option>';
   CADENAS.forEach(c=>{const o=document.createElement('option');o.value=c;o.text=c;if(c===cur)o.selected=true;sel.appendChild(o);});
 }
+let yearMode=false;
 function setMonth(m,el){
+  yearMode=false;
+  document.getElementById('yearEvolCard').style.display='none';
+  document.querySelector('.kpi-row').style.display='';
   curMonth=m; curWeek='';
   document.querySelectorAll('.m-btn').forEach(b=>b.classList.remove('active','active-gold'));
   el.classList.add(m==='JUNIO'?'active-gold':'active');
@@ -311,6 +320,50 @@ function setWeek(w,el){
 function resetF(){
   ['fReg','fProm','fCat','fCad'].forEach(id=>document.getElementById(id).value='');
   curWeek=''; buildWeekBtns(); render(); buildVenc();
+  if(yearMode) renderYearEvol();
+}
+function toggleYear(el){
+  yearMode=true;
+  document.querySelectorAll('.m-btn').forEach(b=>b.classList.remove('active','active-gold'));
+  el.classList.add('active-gold');
+  document.querySelector('.kpi-row').style.display='none';
+  document.getElementById('yearEvolCard').style.display='block';
+  renderYearEvol();
+}
+function computeMonthKPIs(mes){
+  const baseAll = mes==='JUNIO'?BASE_JUNIO:mes==='MAYO'?BASE_MAYO:mes==='ABRIL'?BASE_ABRIL:BASE_MARZO;
+  const noefAll = mes==='JUNIO'?NOEF_JUNIO:mes==='MAYO'?NOEF_MAYO:mes==='ABRIL'?NOEF_ABRIL:NOEF_MARZO;
+  const parcAll = mes==='JUNIO'?PARC_JUNIO:mes==='MAYO'?PARC_MAYO:mes==='ABRIL'?PARC_ABRIL:PARC_MARZO;
+  const fR=document.getElementById('fReg').value,fP=document.getElementById('fProm').value,fC=document.getElementById('fCat').value,fK=document.getElementById('fCad').value;
+  const base=baseAll.filter(r=>{if(fR&&r.REGION!==fR)return false;if(fP&&r.PROMOTOR!==fP)return false;if(fC&&r.FORMATO_CAT!==fC)return false;if(fK&&r.CADENA!==fK)return false;return true;});
+  const noef=noefAll.filter(r=>{if(fR&&r.REGION!==fR)return false;if(fP&&r.PROMOTOR!==fP)return false;if(fK&&r.CADENA_SHORT!==fK)return false;return true;});
+  const parc=parcAll.filter(r=>{if(fR&&r.REGION!==fR)return false;if(fP&&r.PROMOTOR!==fP)return false;if(fK&&r.CADENA_SHORT!==fK)return false;return true;});
+  const ef=new Set(base.map(r=>r.STORE_ID)).size, noEf=noef.length, parcial=parc.length;
+  const asig=ef+noEf;
+  const tasa=asig>0?+(ef/asig*100).toFixed(1):0;
+  return {asig,ef,noEf,tasa,parcial};
+}
+function renderYearEvol(){
+  const meses=['MARZO','ABRIL','MAYO','JUNIO'];
+  const labels=['Marzo','Abril','Mayo','Junio'];
+  const rows=meses.map(computeMonthKPIs);
+  mk('cYearEvol',{
+    type:'bar',
+    data:{labels,datasets:[
+      {type:'bar',label:'PDVs Asignados',data:rows.map(r=>r.asig),backgroundColor:'#2185d0',borderRadius:4},
+      {type:'bar',label:'PDVs Efectivos',data:rows.map(r=>r.ef),backgroundColor:'#21ba45',borderRadius:4},
+      {type:'bar',label:'PDVs No Efectivos',data:rows.map(r=>r.noEf),backgroundColor:'#db2828',borderRadius:4},
+      {type:'bar',label:'Conteo Parcial',data:rows.map(r=>r.parcial),backgroundColor:'#f2711c',borderRadius:4},
+      {type:'line',label:'Tasa de Efectividad (%)',data:rows.map(r=>r.tasa),borderColor:'#6435c9',backgroundColor:'#6435c9',yAxisID:'y1',tension:.3,pointRadius:4,pointBackgroundColor:'#6435c9'}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom',labels:{boxWidth:10,color:'#666'}}},
+      scales:{
+        y:{beginAtZero:true,grid:{color:'rgba(0,0,0,0.04)'}},
+        y1:{beginAtZero:true,max:100,position:'right',grid:{drawOnChartArea:false},ticks:{callback:v=>v+'%'}}
+      }
+    }
+  });
 }
 
 Chart.defaults.color='#666'; Chart.defaults.borderColor='rgba(0,0,0,0.06)';
