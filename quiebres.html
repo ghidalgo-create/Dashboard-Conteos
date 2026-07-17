@@ -183,7 +183,7 @@ body{background:var(--bg);color:var(--text);font-family:"Source Sans 3",sans-ser
       <div id="evolucionChart"></div>
     </div>
     <div class="chart-card">
-      <div class="chart-title"><span class="dot" style="background:var(--green)"></span>Distribución por Grupo</div>
+      <div class="chart-title"><span class="dot" style="background:var(--green)"></span>Cantidad de quiebres por tipo de cadena</div>
       <div id="grupoChart"></div>
     </div>
   </div>
@@ -280,7 +280,7 @@ function renderKPIs(d) {
 function renderCadena(d) {
   const rows = Object.entries(d.cadena).sort((a,b) => b[1].pct - a[1].pct);
   document.getElementById('cadenaTable').innerHTML = `
-    <thead><tr><th>Cadena</th><th>Total Quiebres Reportados</th><th>Quiebres Totales</th><th>% Quiebre</th></tr></thead>
+    <thead><tr><th>Cadena</th><th>Total</th><th>Quiebres</th><th>% Quiebre</th></tr></thead>
     <tbody>
       ${rows.map(([cad,v]) => `
         <tr>
