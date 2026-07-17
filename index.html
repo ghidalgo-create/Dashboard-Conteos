@@ -139,7 +139,7 @@ select:focus{border-color:#1a2b3c}
 </div>
 <div class="filter-bar">
   <div class="fg"><label>Región</label>
-    <select id="fReg" onchange="if(yearMode){renderYear();}else{render();buildVenc();}">
+    <select id="fReg" onchange="if(yearMode){renderYearEvol();}else{render();buildVenc();}">
       <option value="">Todas (Lima · KC · NKC)</option>
       <option value="LIMA">Lima</option>
       <option value="KC">KC</option>
@@ -147,17 +147,17 @@ select:focus{border-color:#1a2b3c}
     </select>
   </div>
   <div class="fg"><label>Promotor</label>
-    <select id="fProm" onchange="if(yearMode){renderYear();}else{render();buildVenc();}"><option value="">Todos los Promotores</option></select>
+    <select id="fProm" onchange="if(yearMode){renderYearEvol();}else{render();buildVenc();}"><option value="">Todos los Promotores</option></select>
   </div>
   <div class="fg"><label>Categoría</label>
-    <select id="fCat" onchange="if(yearMode){renderYear();}else{render();buildVenc();}">
+    <select id="fCat" onchange="if(yearMode){renderYearEvol();}else{render();buildVenc();}">
       <option value="">VUSE + VELO</option>
       <option value="VUSE">VUSE</option>
       <option value="VELO">VELO</option>
     </select>
   </div>
   <div class="fg"><label>KKAA / Cadena</label>
-    <select id="fCad" onchange="if(yearMode){renderYear();}else{render();buildVenc();}"><option value="">Todas las cadenas</option></select>
+    <select id="fCad" onchange="if(yearMode){renderYearEvol();}else{render();buildVenc();}"><option value="">Todas las cadenas</option></select>
   </div>
   <button class="btn-limpiar" onclick="resetF()">↺ Limpiar filtros</button>
 </div>
@@ -167,16 +167,17 @@ select:focus{border-color:#1a2b3c}
 </div>
 <div class="main">
   <div class="sec-title">Resumen General</div>
+  <div class="card" id="yearEvolCard" style="display:none;margin-bottom:20px">
+    <div class="card-hd"><div class="card-hd-title">Evolutivo 2026 — Resumen General por Mes</div></div>
+    <div style="height:320px"><canvas id="cYearEvol"></canvas></div>
+  </div>
+  <div id="monthSections">
   <div class="kpi-row">
     <div class="kpi kb"><div class="kpi-icon">📋</div><div class="kpi-val" id="kAsig">—</div><div class="kpi-lbl">PDVs Asignados</div><div class="kpi-sub">Universo total</div></div>
     <div class="kpi kg"><div class="kpi-icon">✅</div><div class="kpi-val" id="kEf">—</div><div class="kpi-lbl">PDVs Efectivos</div><div class="kpi-sub">Con conteo realizado</div></div>
     <div class="kpi kr"><div class="kpi-icon">❌</div><div class="kpi-val" id="kNoEf">—</div><div class="kpi-lbl">PDVs No Efectivos</div><div class="kpi-sub" id="kNoEfSub">—</div></div>
     <div class="kpi kt"><div class="kpi-icon">📊</div><div class="kpi-val" id="kTasa">—</div><div class="kpi-lbl">Tasa de Efectividad</div><div class="kpi-sub">Efectivos / Asignados</div></div>
     <div class="kpi ko"><div class="kpi-icon">⚡</div><div class="kpi-val" id="kParc">—</div><div class="kpi-lbl">Conteo Parcial</div><div class="kpi-sub" id="kParcSub">—</div></div>
-  </div>
-  <div class="card" id="yearEvolCard" style="display:none;margin-bottom:20px">
-    <div class="card-hd"><div class="card-hd-title">Evolutivo 2026 — Resumen General por Mes</div></div>
-    <div style="height:320px"><canvas id="cYearEvol"></canvas></div>
   </div>
   <div class="charts-row r2" id="normalSections">
     <div class="card">
@@ -204,6 +205,7 @@ select:focus{border-color:#1a2b3c}
   <div class="charts-row r2">
     <div class="card"><div class="card-hd"><div class="card-hd-title">Conteo Parcial por Promotor</div></div><div class="ch ch200"><canvas id="cParcProm"></canvas></div></div>
     <div class="card"><div class="card-hd"><div class="card-hd-title">Conteo Parcial por KKAA</div></div><div class="ch ch200"><canvas id="cParcKkaa"></canvas></div></div>
+  </div>
   </div>
   <div id="vencSection">
     <div class="card" style="margin-bottom:14px">
@@ -310,6 +312,7 @@ function parcOf(m){return m==='JUNIO'?PARC_JUNIO:m==='MAYO'?PARC_MAYO:m==='ABRIL
 function setMonth(m,el){
   yearMode=false;
   document.getElementById('yearEvolCard').style.display='none';
+  document.getElementById('monthSections').style.display='';
   document.getElementById('vencSection').style.display='';
   document.getElementById('weekBar').style.display='';
   curMonth=m; curWeek='';
@@ -327,7 +330,7 @@ function setWeek(w,el){
 function resetF(){
   ['fReg','fProm','fCat','fCad'].forEach(id=>document.getElementById(id).value='');
   curWeek=''; buildWeekBtns();
-  if(yearMode) renderYear(); else { render(); buildVenc(); }
+  if(yearMode) renderYearEvol(); else { render(); buildVenc(); }
 }
 function toggleYear(el){
   yearMode=true;
@@ -335,8 +338,9 @@ function toggleYear(el){
   el.classList.add('active-gold');
   document.getElementById('weekBar').style.display='none';
   document.getElementById('vencSection').style.display='none';
+  document.getElementById('monthSections').style.display='none';
   document.getElementById('yearEvolCard').style.display='block';
-  renderYear();
+  renderYearEvol();
 }
 function computeMonthKPIs(mes){
   const fR=document.getElementById('fReg').value,fP=document.getElementById('fProm').value,fC=document.getElementById('fCat').value,fK=document.getElementById('fCad').value;
