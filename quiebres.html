@@ -253,13 +253,13 @@ function renderKPIs(d) {
     <div class="kpi-card" style="--kc:var(--red)">
       <div class="kpi-icon">❌</div>
       <div class="kpi-val">${d.quiebres.toLocaleString()}</div>
-      <div class="kpi-label">Quiebres totales</div>
+      <div class="kpi-label">SKUs con quiebres totales</div>
       <div class="kpi-sub">Stock = 0</div>
     </div>
     <div class="kpi-card" style="--kc:var(--green)">
       <div class="kpi-icon">✅</div>
       <div class="kpi-val">${d.no_quiebres.toLocaleString()}</div>
-      <div class="kpi-label">Con stock</div>
+      <div class="kpi-label">SKUs con quiebres parciales</div>
       <div class="kpi-sub">Sin quiebre</div>
     </div>
     <div class="kpi-card" style="--kc:${pctColor(d.pct)}">
