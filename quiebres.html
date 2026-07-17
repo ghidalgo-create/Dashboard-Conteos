@@ -280,7 +280,7 @@ function renderKPIs(d) {
 function renderCadena(d) {
   const rows = Object.entries(d.cadena).sort((a,b) => b[1].pct - a[1].pct);
   document.getElementById('cadenaTable').innerHTML = `
-    <thead><tr><th>Cadena</th><th>Total</th><th>Quiebres</th><th>% Quiebre</th></tr></thead>
+    <thead><tr><th>Cadena</th><th>Total Quiebres Reportados</th><th>Quiebres Totales</th><th>% Quiebre</th></tr></thead>
     <tbody>
       ${rows.map(([cad,v]) => `
         <tr>
