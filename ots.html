@@ -233,8 +233,7 @@ function mk(id, cfg) {
 
 function render() {
   const d = getData();
-  const mesLabel = {ENE:'Enero',FEB:'Febrero',MAR:'Marzo',ABR:'Abril',MAY:'Mayo',ALL:'2026'}[curMes];
-  document.getElementById('secTitle').textContent = `Resumen General OTs — ${mesLabel} 2026`;
+  document.getElementById('secTitle').textContent = 'Resumen General OTs';
 
   // KPIs
   document.getElementById('kTotal').textContent   = d.total.toLocaleString();
