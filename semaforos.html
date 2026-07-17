@@ -140,10 +140,6 @@ body{background:var(--bg);color:var(--text);font-family:"Source Sans 3",sans-ser
     <div class="legend-item"><div class="legend-dot" style="background:#C93B3B"></div>ROJO < 7.0 — Crítico</div>
   </div>
 
-  <!-- EVOLUTIVO POR CADENA -->
-  <div class="sec-title"><span class="dot" style="background:var(--gold-dark)"></span>Evolutivo por Cadena — Promedio semanal</div>
-  <div class="g5" id="evolucionGrid"></div>
-
   <!-- KPI GRID -->
   <div class="sec-title" style="margin-top:4px"><span class="dot" style="background:var(--navy)"></span>Semáforo por Cadena — Selecciona una para ver el detalle</div>
   <div class="g5" id="cadenaCards"></div>
@@ -330,7 +326,6 @@ function renderCriticos() {
 function render() {
   document.getElementById('mesBadge').textContent = MES_LABELS[curMes];
   document.getElementById('footerDate').textContent = 'Dashboard de Ejecución en Campo — ' + MES_LABELS[curMes];
-  renderEvolucion();
   renderCadenaCards();
   if(curCadena) renderKPIDetail();
   else document.getElementById('kpiDetail').innerHTML = '<div style="color:var(--muted);font-size:13px;padding:16px 0">Haz clic en una cadena para ver sus KPIs</div>';
