@@ -297,7 +297,7 @@ function renderKPIDetail() {
   }).join('');
   document.getElementById('kpiDetail').innerHTML = `
     <table class="sem-table">
-      <thead><tr><th>KPI</th><th>S1 &nbsp; S2 &nbsp; S3 &nbsp; S4</th><th>Promedio</th></tr></thead>
+      <thead><tr><th>KPI</th><th><span style="display:inline-block;width:28px;text-align:center">S1</span><span style="display:inline-block;width:28px;text-align:center">S2</span><span style="display:inline-block;width:28px;text-align:center">S3</span><span style="display:inline-block;width:28px;text-align:center">S4</span></th><th>Promedio</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>`;
 }
