@@ -435,10 +435,34 @@ function renderYearProm() {
       locCount[r.PROMOTOR][loc] = (locCount[r.PROMOTOR][loc] || 0) + 1;
     });
   });
+  const DIST_TO_CITY = {
+    'LIMA':'LIMA','CALLAO':'LIMA','CERCADO DE LIMA':'LIMA','ANCON':'LIMA','ATE':'LIMA','ATE VITARTE':'LIMA',
+    'BARRANCO':'LIMA','BREÑA':'LIMA','CARABAYLLO':'LIMA','CHACLACAYO':'LIMA','CHORRILLOS':'LIMA','CHOSICA':'LIMA',
+    'CIENEGUILLA':'LIMA','COMAS':'LIMA','EL AGUSTINO':'LIMA','INDEPENDENCIA':'LIMA','JESUS MARIA':'LIMA',
+    'LA MOLINA':'LIMA','LA VICTORIA':'LIMA','LINCE':'LIMA','LOS OLIVOS':'LIMA','LURIGANCHO':'LIMA','LURIN':'LIMA',
+    'MAGDALENA DEL MAR':'LIMA','MIRAFLORES':'LIMA','PACHACAMAC':'LIMA','PUCUSANA':'LIMA','PUEBLO LIBRE':'LIMA',
+    'PUENTE PIEDRA':'LIMA','PUNTA HERMOSA':'LIMA','PUNTA NEGRA':'LIMA','RIMAC':'LIMA','SAN BARTOLO':'LIMA',
+    'SAN BORJA':'LIMA','SAN ISIDRO':'LIMA','SAN JUAN DE LURIGANCHO':'LIMA','SAN JUAN DE MIRAFLORES':'LIMA',
+    'SAN LUIS':'LIMA','SAN MARTIN DE PORRES':'LIMA','SAN MIGUEL':'LIMA','SANTA ANITA':'LIMA',
+    'SANTA MARIA DEL MAR':'LIMA','SANTA ROSA':'LIMA','SANTIAGO DE SURCO':'LIMA','SURQUILLO':'LIMA',
+    'VILLA EL SALVADOR':'LIMA','VILLA MARIA DEL TRIUNFO':'LIMA','BELLAVISTA':'LIMA','CARMEN DE LA LEGUA':'LIMA',
+    'LA PERLA':'LIMA','LA PUNTA':'LIMA','VENTANILLA':'LIMA','MI PERU':'LIMA',
+    'AREQUIPA':'AREQUIPA','YANAHUARA':'AREQUIPA','JOSE LUIS BUSTAMANTE Y RIVERO':'AREQUIPA','CAYMA':'AREQUIPA','CERRO COLORADO':'AREQUIPA',
+    'TRUJILLO':'TRUJILLO','HUANCHACO':'TRUJILLO','VICTOR LARCO HERRERA':'TRUJILLO','LA ESPERANZA':'TRUJILLO','MOCHE':'TRUJILLO','EL PORVENIR':'TRUJILLO',
+    'PIURA':'PIURA','PIIRA':'PIURA','CASTILLA':'PIURA','VEINTISEIS DE OCTUBRE':'PIURA','26 DE OCTUBRE':'PIURA',
+    'CUSCO':'CUSCO','WANCHAQ':'CUSCO','SAN SEBASTIAN':'CUSCO','SAN JERONIMO':'CUSCO',
+    'CHICLAYO':'CHICLAYO','JOSE LEONARDO ORTIZ':'CHICLAYO','LA VICTORIA CHICLAYO':'CHICLAYO',
+  };
+  const normLoc = s => {
+    const up = s.trim().toUpperCase();
+    return DIST_TO_CITY[up] || up;
+  };
   const provinciaOf = {};
   Object.entries(locCount).forEach(([p, counts]) => {
+    const merged = {};
+    Object.entries(counts).forEach(([loc, n]) => { const city = normLoc(loc); merged[city] = (merged[city]||0) + n; });
     let best = '', bestN = 0;
-    Object.entries(counts).forEach(([loc, n]) => { if (n > bestN) { best = loc; bestN = n; } });
+    Object.entries(merged).forEach(([loc, n]) => { if (n > bestN) { best = loc; bestN = n; } });
     provinciaOf[p] = best;
   });
 
