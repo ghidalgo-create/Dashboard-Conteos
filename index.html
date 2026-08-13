@@ -374,7 +374,7 @@ function computeMonthKPIs(mes){
   return {asig,ef,noEf,tasa,parcial};
 }
 function renderYearEvol(){
-  const labels=['Marzo','Abril','Mayo','Junio'];
+  const labels=['Marzo','Abril','Mayo','Junio','Julio'];
   const rows=ALL_MESES.map(computeMonthKPIs);
   mk('cYearEvol',{
     type:'bar',
@@ -458,7 +458,7 @@ function renderYear(){
   const kkMap={}; base.forEach(r=>{if(!kkMap[r.CADENA])kkMap[r.CADENA]=new Set();kkMap[r.CADENA].add(r.STORE_ID);});
   const kkArr=Object.entries(kkMap).map(([k,v])=>[k,v.size]).sort((a,b)=>b[1]-a[1]);
   mk('cKkaa',{type:'bar',data:{labels:kkArr.map(([k])=>k),datasets:[{data:kkArr.map(([,v])=>v),backgroundColor:PAL,borderRadius:5,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{grid:{color:'rgba(0,0,0,0.04)'}},x:{grid:{display:false}}}}});
-  const mesLabels=['Marzo','Abril','Mayo','Junio'];
+  const mesLabels=['Marzo','Abril','Mayo','Junio','Julio'];
   const vuseM=ALL_MESES.map(m=>{const f=baseOf(m).filter(r=>{if(fR&&r.REGION!==fR)return false;if(fP&&r.PROMOTOR!==fP)return false;if(fK&&r.CADENA!==fK)return false;return true;});return fC==='VELO'?0:f.filter(r=>r.FORMATO_CAT==='VUSE').reduce((a,r)=>a+r.CANT,0);});
   const veloM=ALL_MESES.map(m=>{const f=baseOf(m).filter(r=>{if(fR&&r.REGION!==fR)return false;if(fP&&r.PROMOTOR!==fP)return false;if(fK&&r.CADENA!==fK)return false;return true;});return fC==='VUSE'?0:f.filter(r=>r.FORMATO_CAT==='VELO').reduce((a,r)=>a+r.CANT,0);});
   mk('cSemana',{type:'bar',data:{labels:mesLabels,datasets:[{label:'VUSE',data:vuseM,backgroundColor:'#2185d0',borderRadius:4},{label:'VELO',data:veloM,backgroundColor:'#f2711c',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#666',boxWidth:10}}},scales:{y:{grid:{color:'rgba(0,0,0,0.04)'}},x:{grid:{display:false}}}}});
