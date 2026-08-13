@@ -207,7 +207,7 @@ select:focus{border-color:#1a2b3c}
     <div class="card-hd"><div class="card-hd-title">Evolutivo 2026 — % Promedio de Avance de Cuota por Promotor</div></div>
     <div style="max-height:460px;overflow-y:auto">
       <table class="pos-table" style="width:100%">
-        <thead><tr><th>Promotor</th><th style="text-align:center">Marzo</th><th style="text-align:center">Abril</th><th style="text-align:center">Mayo</th><th style="text-align:center">Junio</th></tr></thead>
+        <thead><tr><th>Promotor</th><th>Provincia</th><th style="text-align:center">Marzo</th><th style="text-align:center">Abril</th><th style="text-align:center">Mayo</th><th style="text-align:center">Junio</th><th style="text-align:center">Julio</th></tr></thead>
         <tbody id="yearPromBody"></tbody>
       </table>
     </div>
@@ -419,6 +419,29 @@ function renderYearProm() {
   });
   const promList = [...allProms].sort((a,b) => overallAvg[b] - overallAvg[a]);
 
+  // Provincia: localidad/distrito mas frecuente para cada promotor, a traves de todos los meses
+  const locCount = {};
+  ALL_MESES.forEach(mes => {
+    dataOf(mes).filter(r => {
+      if (fC && r.CADENA !== fC) return false;
+      if (fK && r.CATEGORIA !== fK) return false;
+      if (fP && r.PROMOTOR !== fP) return false;
+      if (r.PROMOTOR && r.PROMOTOR.trim().toUpperCase() === 'NO SE HACE PROMOTORIA') return false;
+      return true;
+    }).forEach(r => {
+      const loc = (r.LOCALIDAD || r.DISTRITO || '').trim().toUpperCase();
+      if (!loc) return;
+      if (!locCount[r.PROMOTOR]) locCount[r.PROMOTOR] = {};
+      locCount[r.PROMOTOR][loc] = (locCount[r.PROMOTOR][loc] || 0) + 1;
+    });
+  });
+  const provinciaOf = {};
+  Object.entries(locCount).forEach(([p, counts]) => {
+    let best = '', bestN = 0;
+    Object.entries(counts).forEach(([loc, n]) => { if (n > bestN) { best = loc; bestN = n; } });
+    provinciaOf[p] = best;
+  });
+
   const rowsHtml = promList.map(p => {
     const cells = byMonth.map(m => {
       const v = m[p];
@@ -427,10 +450,11 @@ function renderYearProm() {
       const col = pctColor(v);
       return `<td style="text-align:center;font-weight:700;color:${col}">${pct}%</td>`;
     }).join('');
-    return `<tr><td style="font-weight:700">${p}</td>${cells}</tr>`;
+    const prov = provinciaOf[p] || '—';
+    return `<tr><td style="font-weight:700">${p}</td><td style="color:#666">${prov}</td>${cells}</tr>`;
   }).join('');
 
-  document.getElementById('yearPromBody').innerHTML = rowsHtml || '<tr><td colspan="5" style="text-align:center;color:#999;padding:16px">Sin datos con estos filtros</td></tr>';
+  document.getElementById('yearPromBody').innerHTML = rowsHtml || '<tr><td colspan="7" style="text-align:center;color:#999;padding:16px">Sin datos con estos filtros</td></tr>';
 }
 
 
