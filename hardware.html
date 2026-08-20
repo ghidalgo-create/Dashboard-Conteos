@@ -155,7 +155,6 @@ select:focus{border-color:#1a2b3c}
     <div class="kpi kg"><div class="kpi-icon">📦</div><div class="kpi-val" id="kDisp">—</div><div class="kpi-lbl">Con Dispenser</div><div class="kpi-sub">Dispenser instalado</div></div>
     <div class="kpi kp"><div class="kpi-icon">🗂️</div><div class="kpi-val" id="kCig">—</div><div class="kpi-lbl">Con Cigarrera</div><div class="kpi-sub">Cigarrera activa</div></div>
     <div class="kpi kt"><div class="kpi-icon">🔖</div><div class="kpi-val" id="kPlaca">—</div><div class="kpi-lbl">Con Placa/Reel</div><div class="kpi-sub">Comunicación instalada</div></div>
-    <div class="kpi kr"><div class="kpi-icon">⭐</div><div class="kpi-val" id="kNew">—</div><div class="kpi-lbl">Nuevas Inst.</div><div class="kpi-sub">Status NEW. INST</div></div>
   </div>
   <div class="charts-row r3">
     <div class="card"><div class="card-hd"><div class="card-hd-title">Tiendas por Región</div></div><div class="ch180"><canvas id="cReg"></canvas></div></div>
@@ -278,7 +277,6 @@ function render() {
   document.getElementById('kDisp').textContent  = data.filter(r=>r.DISP_A && r.DISP_A!=='').length.toLocaleString();
   document.getElementById('kCig').textContent   = data.filter(r=>r.CIG_A && r.CIG_A!=='' && r.CIG_A!=='SIN ACTIVO BAT').length.toLocaleString();
   document.getElementById('kPlaca').textContent = data.filter(r=>r.PLACA && r.PLACA!=='').length.toLocaleString();
-  document.getElementById('kNew').textContent   = data.filter(r=>r.STATUS==='NEW. INST').length.toLocaleString();
 
   // Chart: Región donut
   const regMap = countBy(data, 'REGION');
