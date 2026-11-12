@@ -192,15 +192,16 @@ body{background:var(--bg);color:var(--text);font-family:"Source Sans 3",sans-ser
           <div style="display:flex;gap:6px"><button id="lcGBtnCad" onclick="lcSetGrupo('cadena')" class="lc-seg">Cadena</button><button id="lcGBtnPro" onclick="lcSetGrupo('promotor')" class="lc-seg">Promotor</button></div>
         </div>
         <div id="lcResumenViz"></div>
-        <div style="font-size:10.5px;color:var(--muted);margin-top:4px"><span id="lcEscala"></span> · <span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#C93B3B"></span> crónica (≥ 80% de sus semanas) · <span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#E8A0A0"></span> recurrente. Clic en una barra para filtrar el detalle.</div>
+        <div style="font-size:10.5px;color:var(--muted);margin-top:4px">Barra completa = 100% de las tiendas medidas del grupo (rojo oscuro + rosado = total). <span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#C93B3B"></span> crónica (≥ 80% de sus semanas) · <span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#E8A0A0"></span> recurrente. Clic en una barra para filtrar el detalle y el ranking de distritos; otro clic la deselecciona.</div>
       </div>
       <div style="flex:1 1 440px;min-width:320px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;gap:8px;flex-wrap:wrap">
-          <div style="font-size:12px;font-weight:700;color:var(--navy)">Ranking de distritos <span style="font-weight:500;color:var(--muted)">— tiendas con el problema</span></div>
-          <button id="lcDistMas" onclick="lcToggleDist()" class="lc-seg">Ver todos</button>
+          <div style="font-size:12px;font-weight:700;color:var(--navy)">Ranking de distritos <span id="lcDistTitulo" style="font-weight:600;color:#C93B3B"></span> <span style="font-weight:500;color:var(--muted)">— tiendas con el problema</span></div>
+          <div style="display:flex;gap:6px;align-items:center"><span style="font-size:11px;color:var(--muted)">Ordenar por</span><button id="lcOrdN" onclick="lcSetDistOrden('n')" class="lc-seg">N.º de tiendas</button><button id="lcOrdP" onclick="lcSetDistOrden('p')" class="lc-seg">% de tiendas</button><button id="lcDistMas" onclick="lcToggleDist()" class="lc-seg">Ver todos</button></div>
         </div>
+        <div id="lcChips" style="margin-bottom:6px"></div>
         <div id="lcDistViz"></div>
-        <div style="font-size:10.5px;color:var(--muted);margin-top:4px">Distrito según el padrón. Clic en un distrito para filtrar el detalle.</div>
+        <div style="font-size:10.5px;color:var(--muted);margin-top:4px">Distrito según el padrón. Barra completa = 100% de las tiendas medidas del distrito. Clic en un distrito para filtrar el detalle.</div>
       </div>
     </div>
 
@@ -210,6 +211,8 @@ body{background:var(--bg);color:var(--text);font-family:"Source Sans 3",sans-ser
         <label style="display:flex;align-items:center;gap:6px">Cadena
           <select id="lcCadena" onchange="lcSelKey=null;renderLayoutCriticos()" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:7px;font-family:inherit;font-size:12px;color:var(--text)">
             <option value="">Todas</option><option>AVA</option><option>TAMBO</option><option>PRIMAX</option><option>REPSOL</option><option>OXXO</option></select></label>
+        <label style="display:flex;align-items:center;gap:6px">Promotor
+          <select id="lcPromotor" onchange="lcSelKey=null;renderLayoutCriticos()" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:7px;font-family:inherit;font-size:12px;color:var(--text);max-width:200px"><option value="">Todos</option></select></label>
         <label style="display:flex;align-items:center;gap:6px">Distrito
           <select id="lcDistrito" onchange="lcSelKey=null;renderLayoutCriticos()" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:7px;font-family:inherit;font-size:12px;color:var(--text);max-width:220px"><option value="">Todos</option></select></label>
         <input id="lcBuscar" type="text" placeholder="🔍 Buscar tienda, distrito o promotor…" oninput="lcSelKey=null;renderLayoutCriticos()" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:7px;font-family:inherit;font-size:12px;color:var(--text);min-width:230px">
@@ -493,14 +496,16 @@ function lcDistrito(estacion){
   const d = LC_DISTRITOS[lcNN(estacion)]; if(!d) return 'SIN DISTRITO';
   return (d[1] && d[1]!=='LIMA' && d[1]!==d[0]) ? d[0]+' ('+d[1]+')' : d[0];
 }
-let lcVerTodas = false, lcDistTodos = false, lcGrupo = 'cadena', lcSelKey = null, lcFilasCache = [];
+let lcDistOrden = 'n', lcVerTodas = false, lcDistTodos = false, lcGrupo = 'cadena', lcSelKey = null, lcFilasCache = [];
 function lcToggleTodas(){ lcVerTodas = !lcVerTodas; renderLayoutCriticos(); }
+function lcSetDistOrden(o){ lcDistOrden = o; renderLayoutCriticos(); }
+function lcPickPromotor(p){ const s=document.getElementById('lcPromotor'); s.value = (s.value===p?'':p); lcSelKey=null; renderLayoutCriticos(); }
 function lcToggleDist(){ lcDistTodos = !lcDistTodos; renderLayoutCriticos(); }
 function lcSetGrupo(g){ lcGrupo = g; renderLayoutCriticos(); }
 function lcSelect(key){ lcSelKey = key; lcRenderTop(); lcRenderDetalle(); }
 function lcPickCadena(c){ const s=document.getElementById('lcCadena'); s.value = (s.value===c?'':c); lcSelKey=null; renderLayoutCriticos(); }
 function lcPickDistrito(d){ const s=document.getElementById('lcDistrito'); s.value = (s.value===d?'':d); lcSelKey=null; renderLayoutCriticos(); }
-function lcLimpiar(){ ['lcCadena','lcDistrito','lcBuscar'].forEach(i=>document.getElementById(i).value=''); lcSelKey=null; renderLayoutCriticos(); }
+function lcLimpiar(){ ['lcCadena','lcPromotor','lcDistrito','lcBuscar'].forEach(i=>document.getElementById(i).value=''); lcSelKey=null; renderLayoutCriticos(); }
 function lcStrip(semanas, umbral, w, h){
   return semanas.map(x => {
     const col = x.v===null ? '#E5E7EB' : (x.v<umbral ? '#C93B3B' : semColor2(x.v));
@@ -518,6 +523,7 @@ function renderLayoutCriticos(){
   if(!document.getElementById('lcTabla')) return;
   const periodo = document.getElementById('lcPeriodo').value;
   const cadSel  = document.getElementById('lcCadena').value;
+  const promSel = document.getElementById('lcPromotor').value;
   const distSel = document.getElementById('lcDistrito').value;
   const buscar  = lcNN(document.getElementById('lcBuscar').value);
   const umbral  = parseFloat(document.getElementById('lcUmbral').value);
@@ -549,7 +555,7 @@ function renderLayoutCriticos(){
     medidas.total++;
     medidas.cad[e.cadena] = (medidas.cad[e.cadena]||0)+1;
     const pk = e.promotor || '(sin promotor)'; medidas.pro[pk] = (medidas.pro[pk]||0)+1;
-    medidas.dis[e.distrito] = (medidas.dis[e.distrito]||0)+1;
+    if((!cadSel || e.cadena===cadSel) && (!promSel || e.promotor===promSel)) medidas.dis[e.distrito] = (medidas.dis[e.distrito]||0)+1;
     const bajo = med.filter(x => x.v < umbral);
     if(bajo.length < minSem) return;
     const prom = med.reduce((a,x)=>a+x.v,0)/med.length;
@@ -579,27 +585,39 @@ function renderLayoutCriticos(){
   let keys = Object.keys(base).map(k => ({k, tot:base[k], cron:(grp[k]||{}).cron||0, rec:(grp[k]||{}).rec||0}));
   keys.forEach(x => { x.n=x.cron+x.rec; x.p=x.tot?x.n/x.tot*100:0; });
   keys.sort((a,b) => b.n-a.n || b.p-a.p);
-  if(lcGrupo==='promotor') keys = keys.slice(0,10);
-  const maxP = Math.max(10, Math.ceil(Math.max(0,...keys.map(x=>x.p))/10)*10);
-  document.getElementById('lcEscala').textContent = 'Escala de barras: 0–'+maxP+'%';
-  document.getElementById('lcResumenViz').innerHTML = keys.length ? keys.map(x =>
-    lcBarRow(x.k, `${x.k}: ${x.n} de ${x.tot} tiendas (${x.cron} crónicas, ${x.rec} recurrentes)`, (x.cron/x.tot*100)/maxP*100, (x.rec/x.tot*100)/maxP*100,
-      `<b>${x.p.toFixed(0)}%</b> · ${x.n} de ${x.tot}`, lcGrupo==='cadena' ? `lcPickCadena('${x.k}')` : '', lcGrupo==='cadena' && cadSel===x.k)).join('')
-    : '<div style="font-size:12px;color:var(--muted)">Sin datos para este periodo.</div>';
+  document.getElementById('lcResumenViz').innerHTML = `<div style="max-height:${lcGrupo==='promotor'?'320px':'none'};overflow-y:auto">` + (keys.length ? keys.map(x =>
+    lcBarRow(x.k, `${x.k}: ${x.n} de ${x.tot} tiendas (${x.cron} crónicas, ${x.rec} recurrentes)`, x.cron/x.tot*100, x.rec/x.tot*100,
+      `<b>${x.p.toFixed(0)}%</b> · ${x.n} de ${x.tot}`, lcGrupo==='cadena' ? `lcPickCadena('${x.k}')` : `lcPickPromotor('${x.k.replace(/'/g,"\\'")}')`, lcGrupo==='cadena' ? cadSel===x.k : promSel===x.k)).join('')
+    : '<div style="font-size:12px;color:var(--muted)">Sin datos para este periodo.</div>') + '</div>';
 
-  // ---- ranking de distritos ----
+  // ---- filtro promotor (opciones) ----
+  const pg = {}; filasAll.forEach(f => { const k=f.e.promotor||'(sin promotor)'; pg[k]=(pg[k]||0)+1; });
+  const selP = document.getElementById('lcPromotor'); const curP = selP.value;
+  selP.innerHTML = '<option value="">Todos</option>' + Object.keys(pg).sort((a,b)=>pg[b]-pg[a]||a.localeCompare(b)).map(k=>`<option value="${k.replace(/"/g,'&quot;')}">${k} (${pg[k]})</option>`).join('');
+  selP.value = pg[curP] ? curP : '';
+  const promSelOk = selP.value;
+
+  // ---- ranking de distritos (segun cadena/promotor elegidos) ----
+  const filtroBase = f => (!cadSel || f.e.cadena===cadSel) && (!promSelOk || f.e.promotor===promSelOk);
   const dg = {};
-  filasAll.forEach(f => { const g = dg[f.e.distrito]||(dg[f.e.distrito]={cron:0,rec:0}); if(f.cronica) g.cron++; else g.rec++; });
+  filasAll.filter(filtroBase).forEach(f => { const g = dg[f.e.distrito]||(dg[f.e.distrito]={cron:0,rec:0}); if(f.cronica) g.cron++; else g.rec++; });
   let dk = Object.keys(dg).map(k => ({k, tot:medidas.dis[k]||0, cron:dg[k].cron, rec:dg[k].rec}));
   dk.forEach(x => { x.n=x.cron+x.rec; x.p=x.tot?x.n/x.tot*100:0; });
-  dk.sort((a,b) => b.n-a.n || b.p-a.p || a.k.localeCompare(b.k));
+  dk.sort((a,b) => lcDistOrden==='p' ? (b.p-a.p || b.n-a.n || a.k.localeCompare(b.k)) : (b.n-a.n || b.p-a.p || a.k.localeCompare(b.k)));
+  document.getElementById('lcOrdN').className = 'lc-seg'+(lcDistOrden==='n'?' on':'');
+  document.getElementById('lcOrdP').className = 'lc-seg'+(lcDistOrden==='p'?' on':'');
+  if(lcDistOrden==='p') dk = dk.filter(x => x.tot>=3);   // por % solo distritos con 3+ tiendas medidas (evita 1 de 1 = 100%)
   const totalDist = dk.length;
   const dkShow = lcDistTodos ? dk : dk.slice(0,10);
-  const maxN = Math.max(1, ...dkShow.map(x=>x.n));
   document.getElementById('lcDistMas').style.display = totalDist>10 ? '' : 'none';
   document.getElementById('lcDistMas').textContent = lcDistTodos ? 'Ver solo el top 10' : 'Ver los '+totalDist+' distritos';
+  const chip = (t, fn) => `<span style="display:inline-flex;align-items:center;gap:6px;margin-right:6px;padding:3px 6px 3px 10px;border-radius:12px;background:#fdecec;color:#C93B3B;font-size:11px;font-weight:700">${t}<button onclick="${fn}" title="Quitar filtro" style="border:none;background:none;color:#C93B3B;cursor:pointer;font-size:13px;line-height:1;padding:0 3px">✕</button></span>`;
+  document.getElementById('lcChips').innerHTML = (cadSel?chip(cadSel,`lcPickCadena('${cadSel}')`):'') + (promSelOk?chip(promSelOk,`lcPickPromotor('${promSelOk.replace(/'/g,"\\'")}')`):'')
+    + ((cadSel||promSelOk)?'':'<span style="font-size:11px;color:var(--muted)">Mostrando todas las cadenas y promotores. Elige una cadena o un promotor para ver solo sus distritos.</span>')
+    + (lcDistOrden==='p'?'<span style="font-size:11px;color:var(--muted);margin-left:6px">Orden por %: solo distritos con 3 o más tiendas medidas.</span>':'');
+  document.getElementById('lcDistTitulo').textContent = [cadSel, promSelOk].filter(Boolean).join(' · ');
   document.getElementById('lcDistViz').innerHTML = `<div style="max-height:${lcDistTodos?'380px':'none'};overflow-y:auto">` + (dkShow.length ? dkShow.map((x,i) =>
-    lcBarRow((i+1)+'. '+x.k, `${x.k}: ${x.n} de ${x.tot} tiendas medidas (${x.cron} crónicas, ${x.rec} recurrentes)`, x.cron/maxN*100, x.rec/maxN*100,
+    lcBarRow((i+1)+'. '+x.k, `${x.k}: ${x.n} de ${x.tot} tiendas medidas (${x.cron} crónicas, ${x.rec} recurrentes)`, x.tot ? x.cron/x.tot*100 : 0, x.tot ? x.rec/x.tot*100 : 0,
       `<b>${x.n}</b> de ${x.tot} · ${x.p.toFixed(0)}%`, `lcPickDistrito('${x.k.replace(/'/g,"\\'")}')`, distSel===x.k, 215)).join('')
     : '<div style="font-size:12px;color:var(--muted)">Ningún distrito con tiendas en esta condición.</div>') + '</div>';
   // opciones del filtro de distrito (los que tienen casos)
@@ -609,7 +627,7 @@ function renderLayoutCriticos(){
 
   // ---- detalle filtrado ----
   const distSel2 = selD.value;
-  const filas = filasAll.filter(f => (!cadSel || f.e.cadena===cadSel) && (!distSel2 || f.e.distrito===distSel2)
+  const filas = filasAll.filter(f => filtroBase(f) && (!distSel2 || f.e.distrito===distSel2)
       && (!buscar || lcNN(f.e.estacion).includes(buscar) || lcNN(f.e.promotor).includes(buscar) || lcNN(f.e.distrito).includes(buscar)));
   lcFilasCache = filas;
   document.getElementById('lcCuenta').textContent = filas.length+' de '+nRec+' tiendas con el problema';
@@ -665,7 +683,8 @@ function lcRenderDetalle(){
   const cell = v => v===undefined ? '<td style="padding:4px 6px;border-bottom:1px solid #f0f2f5"></td>'
     : v===null ? '<td style="padding:4px 6px;text-align:center;border-bottom:1px solid #f0f2f5;color:#bbb">—</td>'
     : `<td style="padding:4px 6px;text-align:center;border-bottom:1px solid #f0f2f5"><span style="display:inline-block;min-width:34px;background:${semColor2(v)}22;color:${semColor2(v)};border-radius:5px;padding:2px 6px;font-weight:700${v<umbral?';box-shadow:0 0 0 1.5px '+semColor2(v)+' inset':''}">${v.toFixed(1)}</span></td>`;
-  const filasMes = Object.keys(porMes).map(m => `<tr><td style="padding:4px 8px;border-bottom:1px solid #f0f2f5;font-weight:700;color:var(--navy);font-size:11px">${LC_MES_CORTO[m]}</td>${[1,2,3,4,5].map(s=>cell(porMes[m][s])).join('')}</tr>`).join('');
+  const maxSem = Math.max(4, ...e.semanas.map(x=>x.sem)), cols = Array.from({length:maxSem},(_,i)=>i+1);
+  const filasMes = Object.keys(porMes).map(m => `<tr><td style="padding:4px 8px;border-bottom:1px solid #f0f2f5;font-weight:700;color:var(--navy);font-size:11px">${LC_MES_CORTO[m]}</td>${cols.map(s=>cell(porMes[m][s])).join('')}</tr>`).join('');
   const kp = Object.entries(e.ultimo.kpis).filter(([k,v]) => k!=='LAYOUT' && v.prom!==null && v.prom!==undefined && v.prom<9.5).sort((a,b)=>a[1].prom-b[1].prom).slice(0,5);
   const kpHtml = kp.length ? kp.map(([k,v]) => `<span style="display:inline-block;margin:2px 6px 2px 0;padding:3px 9px;border-radius:12px;background:${semColor2(v.prom)}1f;color:${semColor2(v.prom)};font-size:11px;font-weight:700">${k} ${v.prom.toFixed(1)}</span>`).join('') : '<span style="font-size:11px;color:var(--muted)">Ningún otro KPI bajo 9.5 en el mes.</span>';
   const chip = (t,c) => `<span style="display:inline-block;margin-right:6px;padding:3px 9px;border-radius:12px;background:${c}18;color:${c};font-size:11px;font-weight:700">${t}</span>`;
@@ -674,7 +693,7 @@ function lcRenderDetalle(){
     <div style="font-size:12px;color:var(--muted);margin:2px 0 10px">${e.cadena} · ${e.distrito} · ${e.promotor||'sin promotor'}</div>
     <div style="margin-bottom:12px">${chip(f.bajo+' de '+f.med+' semanas bajo '+umbral,'#C93B3B')}${chip('Layout prom. '+f.prom.toFixed(1), semColor2(f.prom))}${f.cronica?chip('Crónica','#7f1d1d'):''}</div>
     <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:4px">Layout por semana</div>
-    <table style="border-collapse:collapse;font-size:12px;margin-bottom:12px"><thead><tr><th></th>${[1,2,3,4,5].map(s=>`<th style="padding:3px 6px;font-size:10px;color:var(--muted)">S${s}</th>`).join('')}</tr></thead><tbody>${filasMes}</tbody></table>
+    <table style="border-collapse:collapse;font-size:12px;margin-bottom:12px"><thead><tr><th></th>${cols.map(s=>`<th style="padding:3px 6px;font-size:10px;color:var(--muted)">S${s}</th>`).join('')}</tr></thead><tbody>${filasMes}</tbody></table>
     <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:4px">Otros KPIs bajo 9.5 (${LC_MES_CORTO[e.ultimo.mes]}, promedio del mes)</div>
     <div>${kpHtml}</div></div>`;
 }
