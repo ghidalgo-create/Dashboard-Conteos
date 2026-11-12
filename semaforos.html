@@ -170,33 +170,47 @@ body{background:var(--bg);color:var(--text);font-family:"Source Sans 3",sans-ser
 <!-- LAYOUT CRITICO RECURRENTE -->
 <div style="padding:0 32px 20px">
   <div class="card" id="layoutCritCard">
-    <div class="card-title"><span class="dot" style="background:#C93B3B"></span>Tiendas con Layout crítico recurrente — semana tras semana</div>
+    <div class="card-title"><span class="dot" style="background:#C93B3B"></span>Layout crítico recurrente — tiendas que no cumplen semana tras semana</div>
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;flex-wrap:wrap;font-size:12px;color:var(--muted)">
       <label style="display:flex;align-items:center;gap:6px">Periodo
         <select id="lcPeriodo" onchange="renderLayoutCriticos()" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:7px;font-family:inherit;font-size:12px;color:var(--text)">
-          <option value="mes">Mes seleccionado</option>
-          <option value="all">Todo 2026 (acumulado)</option>
-        </select></label>
+          <option value="mes">Mes seleccionado</option><option value="all">Todo 2026 (acumulado)</option></select></label>
+      <label style="display:flex;align-items:center;gap:6px">Layout menor a
+        <select id="lcUmbral" onchange="renderLayoutCriticos()" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:7px;font-family:inherit;font-size:12px;color:var(--text)">
+          <option value="7" selected>7.0 (Rojo)</option><option value="8.5">8.5 (Naranja o peor)</option><option value="9.5">9.5 (no Verde)</option></select></label>
+      <label style="display:flex;align-items:center;gap:6px">Mínimo de semanas
+        <select id="lcMin" onchange="renderLayoutCriticos()" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:7px;font-family:inherit;font-size:12px;color:var(--text)">
+          <option value="2">2</option><option value="3" selected>3</option><option value="4">4</option><option value="5">5</option><option value="10">10</option></select></label>
       <label style="display:flex;align-items:center;gap:6px">Cadena
         <select id="lcCadena" onchange="renderLayoutCriticos()" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:7px;font-family:inherit;font-size:12px;color:var(--text)">
-          <option value="">Todas</option><option>AVA</option><option>TAMBO</option><option>PRIMAX</option><option>REPSOL</option><option>OXXO</option>
-        </select></label>
-      <label style="display:flex;align-items:center;gap:6px">Puntaje de Layout menor a
-        <select id="lcUmbral" onchange="renderLayoutCriticos()" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:7px;font-family:inherit;font-size:12px;color:var(--text)">
-          <option value="7" selected>7.0 (Rojo — crítico)</option>
-          <option value="8.5">8.5 (Naranja o peor)</option>
-          <option value="9.5">9.5 (todo lo que no es Verde)</option>
-        </select></label>
-      <label style="display:flex;align-items:center;gap:6px">Mínimo de semanas bajo el umbral
-        <select id="lcMin" onchange="renderLayoutCriticos()" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:7px;font-family:inherit;font-size:12px;color:var(--text)">
-          <option value="2">2</option><option value="3" selected>3</option><option value="4">4</option><option value="5">5</option><option value="10">10</option>
-        </select></label>
+          <option value="">Todas</option><option>AVA</option><option>TAMBO</option><option>PRIMAX</option><option>REPSOL</option><option>OXXO</option></select></label>
     </div>
-    <div id="lcResumen" style="font-size:12px;color:var(--text2);margin-bottom:10px"></div>
-    <div id="lcTabla" style="overflow-x:auto"></div>
-    <div id="lcMas" style="margin-top:10px"></div>
+    <div id="lcKpis" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:8px">
+      <div style="font-size:12px;font-weight:700;color:var(--navy)">Resumen <span id="lcGrupoLbl">por cadena</span> <span style="font-weight:500;color:var(--muted)">— % de tiendas medidas con Layout crítico recurrente <span id="lcEscala"></span></span></div>
+      <div style="display:flex;gap:6px">
+        <button id="lcGBtnCad" onclick="lcSetGrupo('cadena')" class="lc-seg">Cadena</button>
+        <button id="lcGBtnPro" onclick="lcSetGrupo('promotor')" class="lc-seg">Promotor</button>
+      </div>
+    </div>
+    <div id="lcResumenViz" style="margin-bottom:6px"></div>
+    <div style="display:flex;gap:16px;font-size:11px;color:var(--muted);margin-bottom:18px;flex-wrap:wrap">
+      <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#C93B3B;margin-right:5px"></span>Crónica: bajo el umbral en ≥ 80% de sus semanas medidas</span>
+      <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#E8A0A0;margin-right:5px"></span>Recurrente: cumple el mínimo de semanas pero con intermitencias</span>
+    </div>
+    <div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:8px">Casos más críticos <span style="font-weight:500;color:var(--muted)">— haz clic en una tienda para ver el detalle</span></div>
+    <div style="display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start">
+      <div id="lcTop" style="flex:1 1 380px;min-width:300px"></div>
+      <div id="lcDetalle" style="flex:1.4 1 420px;min-width:320px"></div>
+    </div>
+    <details id="lcDet" style="margin-top:18px">
+      <summary style="cursor:pointer;font-size:12px;font-weight:700;color:var(--navy)">Ver listado completo con historial por semana (<span id="lcNFilas">0</span> tiendas)</summary>
+      <div id="lcTabla" style="overflow-x:auto;margin-top:10px"></div>
+      <div id="lcMas" style="margin-top:10px"></div>
+    </details>
   </div>
 </div>
+<style>.lc-seg{padding:5px 12px;border-radius:7px;border:1px solid var(--border);background:#fff;color:var(--muted);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit}.lc-seg.on{background:var(--navy);color:#fff;border-color:var(--navy)}.lc-row{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;margin-bottom:6px;cursor:pointer;background:#fff}.lc-row:hover{background:#f8faff}.lc-row.sel{border-color:#C93B3B;background:#fff6f6}</style>
 
 <!-- TIENDA SEARCH CARD -->
 <div style="padding:0 32px 32px">
@@ -452,56 +466,111 @@ function tiendasByMes(){
 }
 const LC_ORDEN = ['MAR','ABR','MAY','JUN','JUL','AGO','SET'];
 const LC_MES_CORTO = {MAR:'Mar',ABR:'Abr',MAY:'May',JUN:'Jun',JUL:'Jul',AGO:'Ago',SET:'Set'};
-let lcVerTodas = false;
+let lcVerTodas = false, lcGrupo = 'cadena', lcSelKey = null, lcFilasCache = [];
 function lcToggleTodas(){ lcVerTodas = !lcVerTodas; renderLayoutCriticos(); }
+function lcSetGrupo(g){ lcGrupo = g; renderLayoutCriticos(); }
+function lcSelect(key){ lcSelKey = key; lcRenderTop(); lcRenderDetalle(); }
+function lcPickCadena(c){ const s=document.getElementById('lcCadena'); s.value = (s.value===c?'':c); lcSelKey=null; renderLayoutCriticos(); }
+function lcStrip(semanas, umbral, w, h){
+  return semanas.map(x => {
+    const col = x.v===null ? '#E5E7EB' : (x.v<umbral ? '#C93B3B' : semColor2(x.v));
+    return `<span style="display:inline-block;width:${w}px;height:${h}px;border-radius:2px;background:${col};margin-right:1px"></span>`;
+  }).join('');
+}
 
 function renderLayoutCriticos(){
-  const elT = document.getElementById('lcTabla'); if(!elT) return;
+  if(!document.getElementById('lcTabla')) return;
   const periodo = document.getElementById('lcPeriodo').value;
   const cadSel  = document.getElementById('lcCadena').value;
   const umbral  = parseFloat(document.getElementById('lcUmbral').value);
   const minSem  = parseInt(document.getElementById('lcMin').value,10);
   const src = tiendasByMes();
   const meses = periodo==='all' ? LC_ORDEN : [curMes];
-  // acumular por tienda (cadena + estacion): secuencia de semanas medidas del KPI LAYOUT
   const mapa = {};
   meses.forEach(m => {
     const dm = src[m]; if(!dm) return;
     Object.entries(dm).forEach(([cad, stores]) => {
-      if(cadSel && cad!==cadSel) return;
       stores.forEach(s => {
         const k = s.kpis && s.kpis['LAYOUT']; if(!k) return;
         const key = cad+'|'+s.estacion;
-        const e = mapa[key] || (mapa[key] = {estacion:s.estacion, cadena:cad, promotor:s.promotor||'', semanas:[]});
+        const e = mapa[key] || (mapa[key] = {key, estacion:s.estacion, cadena:cad, promotor:s.promotor||'', semanas:[], ultimo:null});
         if(s.promotor) e.promotor = s.promotor;
+        e.ultimo = {mes:m, kpis:s.kpis};
         ['s1','s2','s3','s4','s5'].forEach((w,i) => {
-          if(k[w]===undefined) return;           // semana inexistente en ese mes
+          if(k[w]===undefined) return;
           e.semanas.push({mes:m, sem:i+1, v:(k[w]===null?null:k[w])});
         });
       });
     });
   });
-  const filas = [];
-  let totalMed = 0;
+  const medidas = {total:0, cad:{}, pro:{}};
+  const filasAll = [];
   Object.values(mapa).forEach(e => {
     const med = e.semanas.filter(x => x.v!==null);
     if(!med.length) return;
-    totalMed++;
+    medidas.total++;
+    medidas.cad[e.cadena] = (medidas.cad[e.cadena]||0)+1;
+    const pk = e.promotor || '(sin promotor)'; medidas.pro[pk] = (medidas.pro[pk]||0)+1;
     const bajo = med.filter(x => x.v < umbral);
-    if(bajo.length < minSem) return;              // recurrente = N o mas semanas bajo el umbral
-    let racha=0, maxR=0;                          // semanas sin medicion no cortan la racha
+    if(bajo.length < minSem) return;
+    let racha=0, maxR=0;
     med.forEach(x => { if(x.v < umbral){ racha++; maxR=Math.max(maxR,racha);} else racha=0; });
     const prom = med.reduce((a,x)=>a+x.v,0)/med.length;
-    filas.push({e, med:med.length, bajo:bajo.length, racha:maxR, prom});
+    filasAll.push({e, med:med.length, bajo:bajo.length, racha:maxR, prom, cronica: bajo.length/med.length >= 0.8});
   });
-  filas.sort((a,b) => b.bajo-a.bajo || b.racha-a.racha || a.prom-b.prom || a.e.cadena.localeCompare(b.e.cadena) || a.e.estacion.localeCompare(b.e.estacion));
-  const topN = lcVerTodas ? filas.length : 20;
-  const etiqPer = periodo==='all' ? 'en 2026' : 'en '+MES_LABELS[curMes].toLowerCase();
-  document.getElementById('lcResumen').innerHTML = filas.length
-    ? `<b>${filas.length}</b> de ${totalMed} tiendas medidas ${etiqPer} tienen Layout &lt; ${umbral} en ${minSem} o más semanas. Ordenadas por semanas bajo el umbral, luego por racha consecutiva y puntaje promedio.`
-    : `Ninguna tienda tiene Layout &lt; ${umbral} en ${minSem} o más semanas ${etiqPer}${cadSel?' ('+cadSel+')':''}.`;
+  filasAll.sort((a,b) => b.bajo-a.bajo || b.racha-a.racha || a.prom-b.prom || a.e.cadena.localeCompare(b.e.cadena) || a.e.estacion.localeCompare(b.e.estacion));
+  const filas = cadSel ? filasAll.filter(f => f.e.cadena===cadSel) : filasAll;
+  lcFilasCache = filas;
+  const etiqPer = periodo==='all' ? '2026' : MES_LABELS[curMes].toLowerCase();
+
+  // ---- KPIs compactos ----
+  const nRec = filasAll.length, nCron = filasAll.filter(f=>f.cronica).length;
+  const pct = medidas.total ? (nRec/medidas.total*100) : 0;
+  const tile = (val, lbl, sub, col) => `<div style="flex:1 1 170px;border:1px solid var(--border);border-left:4px solid ${col};border-radius:8px;padding:10px 14px;background:#fff">
+      <div style="font-size:22px;font-weight:800;color:${col};font-family:'Playfair Display',serif">${val}</div>
+      <div style="font-size:11px;font-weight:700;color:var(--navy)">${lbl}</div><div style="font-size:10.5px;color:var(--muted)">${sub}</div></div>`;
+  document.getElementById('lcKpis').innerHTML =
+    tile(medidas.total.toLocaleString(), 'Tiendas medidas', 'con Layout evaluado en '+etiqPer, '#1B2F6E') +
+    tile(nRec.toLocaleString(), 'Con Layout crítico recurrente', pct.toFixed(0)+'% de las medidas · &lt; '+umbral+' en '+minSem+'+ semanas', '#D97706') +
+    tile(nCron.toLocaleString(), 'Críticas crónicas', 'bajo el umbral en ≥ 80% de sus semanas', '#C93B3B');
+
+  // ---- Resumen visual (barras apiladas) ----
+  document.getElementById('lcGBtnCad').className = 'lc-seg'+(lcGrupo==='cadena'?' on':'');
+  document.getElementById('lcGBtnPro').className = 'lc-seg'+(lcGrupo==='promotor'?' on':'');
+  document.getElementById('lcGrupoLbl').textContent = lcGrupo==='cadena' ? 'por cadena' : 'por promotor';
+  const grp = {};
+  filasAll.forEach(f => {
+    const k = lcGrupo==='cadena' ? f.e.cadena : (f.e.promotor || '(sin promotor)');
+    const g = grp[k] || (grp[k]={cron:0, rec:0}); if(f.cronica) g.cron++; else g.rec++;
+  });
+  const base = lcGrupo==='cadena' ? medidas.cad : medidas.pro;
+  let keys = Object.keys(base).map(k => ({k, tot:base[k], cron:(grp[k]||{}).cron||0, rec:(grp[k]||{}).rec||0}));
+  keys.forEach(x => { x.n = x.cron+x.rec; x.p = x.tot? x.n/x.tot*100 : 0; });
+  keys.sort((a,b) => b.n-a.n || b.p-a.p);
+  if(lcGrupo==='promotor') keys = keys.slice(0,10);
+  const maxP = Math.max(10, Math.ceil(Math.max(...keys.map(x=>x.p))/10)*10);
+  document.getElementById('lcEscala').textContent = '(escala de las barras: 0–'+maxP+'%)';
+  document.getElementById('lcResumenViz').innerHTML = keys.length ? keys.map(x => {
+    const wC = (x.cron/x.tot*100)/maxP*100, wR = (x.rec/x.tot*100)/maxP*100;
+    const click = lcGrupo==='cadena' ? `onclick="lcPickCadena('${x.k}')" style="cursor:pointer;` : `style="`;
+    const act = (lcGrupo==='cadena' && cadSel===x.k) ? 'background:#f0f4ff;' : '';
+    return `<div ${click}${act}display:flex;align-items:center;gap:10px;padding:3px 6px;border-radius:6px" title="${x.k}: ${x.n} de ${x.tot} tiendas (${x.cron} crónicas, ${x.rec} recurrentes)">
+      <div style="width:150px;font-size:12px;font-weight:700;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${x.k}</div>
+      <div style="flex:1;height:16px;background:#f1f3f8;border-radius:4px;overflow:hidden;display:flex"><div style="width:${wC}%;background:#C93B3B"></div><div style="width:${wR}%;background:#E8A0A0"></div></div>
+      <div style="width:150px;font-size:11px;color:var(--text2)"><b>${x.p.toFixed(0)}%</b> · ${x.n} de ${x.tot}</div></div>`;
+  }).join('') : '<div style="font-size:12px;color:var(--muted)">Sin datos para este periodo.</div>';
+
+  // ---- casos mas criticos + detalle ----
+  if(!filas.slice(0,8).find(f => f.e.key===lcSelKey)) lcSelKey = filas.length ? filas[0].e.key : null;
+  lcRenderTop(); lcRenderDetalle();
+
+  // ---- listado completo (plegado) ----
+  document.getElementById('lcNFilas').textContent = filas.length;
+  const elT = document.getElementById('lcTabla');
   if(!filas.length){ elT.innerHTML=''; document.getElementById('lcMas').innerHTML=''; return; }
+  const topN = lcVerTodas ? filas.length : 20;
   const th = 'padding:8px 10px;font-weight:700;color:var(--muted);font-size:11px;text-transform:uppercase;border-bottom:2px solid var(--border);';
+  const td = 'padding:7px 10px;border-bottom:1px solid #f0f2f5;';
   const rows = filas.slice(0, topN).map((f,i) => {
     let prevMes=null;
     const cuadros = f.e.semanas.map(x => {
@@ -511,25 +580,53 @@ function renderLayoutCriticos(){
       const lbl = LC_MES_CORTO[x.mes]+' S'+x.sem+': '+(x.v===null?'sin medición':x.v.toFixed(1));
       return sep+`<span title="${lbl}" style="display:inline-block;width:12px;height:12px;border-radius:3px;background:${col};margin-right:2px;vertical-align:middle${x.v!==null&&x.v<umbral?';box-shadow:0 0 0 1.5px #7f1d1d inset':''}"></span>`;
     }).join('');
-    const pc = semColor2(f.prom);
-    return `<tr>
-      <td style="padding:7px 10px;border-bottom:1px solid #f0f2f5;color:var(--muted)">${i+1}</td>
-      <td style="padding:7px 10px;border-bottom:1px solid #f0f2f5;font-weight:700;color:var(--navy)">${f.e.estacion}</td>
-      <td style="padding:7px 10px;border-bottom:1px solid #f0f2f5">${f.e.cadena}</td>
-      <td style="padding:7px 10px;border-bottom:1px solid #f0f2f5;color:var(--text2)">${f.e.promotor}</td>
-      <td style="padding:7px 10px;border-bottom:1px solid #f0f2f5;text-align:center;font-weight:800;color:#C93B3B">${f.bajo} <span style="font-weight:500;color:var(--muted)">de ${f.med}</span></td>
-      <td style="padding:7px 10px;border-bottom:1px solid #f0f2f5;text-align:center;font-weight:700">${f.racha}</td>
-      <td style="padding:7px 10px;border-bottom:1px solid #f0f2f5;text-align:center"><span style="display:inline-block;background:${pc};color:#fff;border-radius:5px;padding:2px 9px;font-weight:700">${f.prom.toFixed(1)}</span></td>
-      <td style="padding:7px 10px;border-bottom:1px solid #f0f2f5;white-space:nowrap">${cuadros}</td>
-    </tr>`;
+    return `<tr><td style="${td}color:var(--muted)">${i+1}</td><td style="${td}font-weight:700;color:var(--navy)">${f.e.estacion}</td><td style="${td}">${f.e.cadena}</td><td style="${td}color:var(--text2)">${f.e.promotor}</td>
+      <td style="${td}text-align:center;font-weight:800;color:#C93B3B">${f.bajo} <span style="font-weight:500;color:var(--muted)">de ${f.med}</span></td><td style="${td}text-align:center;font-weight:700">${f.racha}</td>
+      <td style="${td}text-align:center"><span style="display:inline-block;background:${semColor2(f.prom)};color:#fff;border-radius:5px;padding:2px 9px;font-weight:700">${f.prom.toFixed(1)}</span></td><td style="${td}white-space:nowrap">${cuadros}</td></tr>`;
   }).join('');
-  elT.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:12px">
-    <thead><tr style="background:#f5f7fb">
-      <th style="${th}text-align:left">#</th><th style="${th}text-align:left">Tienda</th><th style="${th}text-align:left">Cadena</th><th style="${th}text-align:left">Promotor</th>
-      <th style="${th}text-align:center">Sem. bajo umbral</th><th style="${th}text-align:center">Racha máx.</th><th style="${th}text-align:center">Layout prom.</th><th style="${th}text-align:left">Historial por semana</th>
+  elT.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:#f5f7fb">
+    <th style="${th}text-align:left">#</th><th style="${th}text-align:left">Tienda</th><th style="${th}text-align:left">Cadena</th><th style="${th}text-align:left">Promotor</th>
+    <th style="${th}text-align:center">Sem. bajo umbral</th><th style="${th}text-align:center">Racha máx.</th><th style="${th}text-align:center">Layout prom.</th><th style="${th}text-align:left">Historial por semana</th>
     </tr></thead><tbody>${rows}</tbody></table>`;
   document.getElementById('lcMas').innerHTML = filas.length>20
-    ? `<button onclick="lcToggleTodas()" style="padding:7px 14px;border-radius:7px;border:1px solid var(--border);background:#fff;color:var(--navy);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">${lcVerTodas?'Ver solo las 20 primeras':'Ver las '+filas.length+' tiendas'}</button>` : '';
+    ? `<button onclick="lcToggleTodas()" class="lc-seg">${lcVerTodas?'Ver solo las 20 primeras':'Ver las '+filas.length+' tiendas'}</button>` : '';
+}
+
+function lcRenderTop(){
+  const umbral = parseFloat(document.getElementById('lcUmbral').value);
+  const el = document.getElementById('lcTop');
+  const top = lcFilasCache.slice(0,8);
+  if(!top.length){ el.innerHTML = '<div style="font-size:12px;color:var(--muted);padding:8px 0">Ninguna tienda cumple el criterio con los filtros actuales.</div>'; return; }
+  el.innerHTML = top.map((f,i) => `<div class="lc-row${f.e.key===lcSelKey?' sel':''}" onclick="lcSelect('${f.e.key.replace(/'/g,"\\'")}')">
+      <div style="width:18px;font-size:11px;color:var(--muted)">${i+1}</div>
+      <div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:700;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${f.e.estacion}</div>
+        <div style="margin-top:3px;line-height:0">${lcStrip(f.e.semanas.slice(-20), umbral, 6, 10)}</div></div>
+      <div style="text-align:right;font-size:11px;white-space:nowrap"><div style="font-weight:800;color:#C93B3B">${f.bajo} de ${f.med}</div><div style="color:var(--muted)">${f.e.cadena}</div></div></div>`).join('')
+    + (lcFilasCache.length>8 ? `<div style="font-size:11px;color:var(--muted);padding:2px 4px">Mostrando 8 de ${lcFilasCache.length}. El resto está en el listado completo.</div>` : '');
+}
+
+function lcRenderDetalle(){
+  const el = document.getElementById('lcDetalle');
+  const f = lcFilasCache.find(x => x.e.key===lcSelKey);
+  if(!f){ el.innerHTML=''; return; }
+  const umbral = parseFloat(document.getElementById('lcUmbral').value);
+  const e = f.e, porMes = {};
+  e.semanas.forEach(x => { (porMes[x.mes] = porMes[x.mes] || {})[x.sem] = x.v; });
+  const cell = v => v===undefined ? '<td style="padding:4px 6px;border-bottom:1px solid #f0f2f5"></td>'
+    : v===null ? '<td style="padding:4px 6px;text-align:center;border-bottom:1px solid #f0f2f5;color:#bbb">—</td>'
+    : `<td style="padding:4px 6px;text-align:center;border-bottom:1px solid #f0f2f5"><span style="display:inline-block;min-width:34px;background:${semColor2(v)}22;color:${semColor2(v)};border-radius:5px;padding:2px 6px;font-weight:700${v<umbral?';box-shadow:0 0 0 1.5px '+semColor2(v)+' inset':''}">${v.toFixed(1)}</span></td>`;
+  const filasMes = Object.keys(porMes).map(m => `<tr><td style="padding:4px 8px;border-bottom:1px solid #f0f2f5;font-weight:700;color:var(--navy);font-size:11px">${LC_MES_CORTO[m]}</td>${[1,2,3,4,5].map(s=>cell(porMes[m][s])).join('')}</tr>`).join('');
+  const kp = Object.entries(e.ultimo.kpis).filter(([k,v]) => k!=='LAYOUT' && v.prom!==null && v.prom!==undefined && v.prom<9.5).sort((a,b)=>a[1].prom-b[1].prom).slice(0,5);
+  const kpHtml = kp.length ? kp.map(([k,v]) => `<span style="display:inline-block;margin:2px 6px 2px 0;padding:3px 9px;border-radius:12px;background:${semColor2(v.prom)}1f;color:${semColor2(v.prom)};font-size:11px;font-weight:700">${k} ${v.prom.toFixed(1)}</span>`).join('') : '<span style="font-size:11px;color:var(--muted)">Ningún otro KPI bajo 9.5 en el mes.</span>';
+  const chip = (t,c) => `<span style="display:inline-block;margin-right:6px;padding:3px 9px;border-radius:12px;background:${c}18;color:${c};font-size:11px;font-weight:700">${t}</span>`;
+  el.innerHTML = `<div style="border:1px solid var(--border);border-radius:10px;padding:14px 16px;background:#fff">
+    <div style="font-size:14px;font-weight:700;color:var(--navy)">${e.estacion}</div>
+    <div style="font-size:12px;color:var(--muted);margin:2px 0 10px">${e.cadena} · ${e.promotor||'sin promotor'}</div>
+    <div style="margin-bottom:12px">${chip(f.bajo+' de '+f.med+' semanas bajo '+umbral,'#C93B3B')}${chip('Racha máx. '+f.racha+' sem.','#D97706')}${chip('Layout prom. '+f.prom.toFixed(1), semColor2(f.prom))}${f.cronica?chip('Crónica','#7f1d1d'):''}</div>
+    <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:4px">Layout por semana</div>
+    <table style="border-collapse:collapse;font-size:12px;margin-bottom:12px"><thead><tr><th></th>${[1,2,3,4,5].map(s=>`<th style="padding:3px 6px;font-size:10px;color:var(--muted)">S${s}</th>`).join('')}</tr></thead><tbody>${filasMes}</tbody></table>
+    <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:4px">Otros KPIs bajo 9.5 (${LC_MES_CORTO[e.ultimo.mes]}, promedio del mes)</div>
+    <div>${kpHtml}</div></div>`;
 }
 
 function render() {
