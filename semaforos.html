@@ -176,16 +176,7 @@ body{background:var(--bg);color:var(--text);font-family:"Source Sans 3",sans-ser
     <div class="card-title"><span class="dot" style="background:#C93B3B"></span><span id="lyTitulo">Layout en profundidad</span></div>
     <div id="lyVacio" style="display:none;font-size:13px;color:var(--muted);padding:10px 2px">Selecciona una cadena en las tarjetas de arriba para ver el detalle de su Layout. Para ver todas las cadenas y compararlas, usa <b>📈 Evolutivo de Semáforos</b>.</div>
     <div id="lyCuerpo">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;font-size:12px;color:var(--muted)">
-        <b style="color:var(--navy)">Periodo</b>
-        <span id="lyMeses" style="display:inline-flex;gap:5px;flex-wrap:wrap"></span>
-        <span style="width:1px;height:18px;background:var(--border);margin:0 4px"></span>
-        <button class="lc-seg" onclick="lyPreset(1)">Mes actual</button>
-        <button class="lc-seg" onclick="lyPreset(2)">Últimos 2</button>
-        <button class="lc-seg" onclick="lyPreset(3)">Últimos 3</button>
-        <button class="lc-seg" onclick="lyPreset(99)">Todo 2026</button>
-        <span id="lyNotaFeb" style="display:none;font-size:11px;color:#b45309">Feb no tiene detalle por tienda; se muestra desde marzo.</span>
-      </div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px"><b style="color:var(--navy)">Periodo:</b> <span id="lyPeriodoTxt"></span> <span id="lyNotaFeb" style="display:none;color:#b45309">· Febrero no tiene detalle por tienda (el Layout por tienda empieza en marzo).</span></div>
       <div id="lyKpis" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px"></div>
 
       <div style="display:flex;gap:24px;flex-wrap:wrap;margin-bottom:20px;align-items:flex-start">
@@ -594,13 +585,13 @@ function lyRender(){
   lyEl('lyCuerpo').style.display = scope===null ? 'none' : '';
   lyEl('lyTitulo').textContent = scope===null ? 'Layout en profundidad' : (scope==='*' ? 'Layout — todas las cadenas (comparativo)' : 'Layout — '+scope);
   if(scope===null) return;
-  if(!lyMeses.size) lyResetMes();
+  lyMeses = new Set(evolSemMode ? LC_ORDEN : [lyDefaultMes()]);
   const all = lyBuild(scope);
   const esTodas = scope==='*';
   if(!esTodas && lyResumen==='cadena') lyResumen='mes';
   // periodo
-  lyEl('lyMeses').innerHTML = LC_ORDEN.map(m => `<button class="lc-seg${lyMeses.has(m)?' on':''}" onclick="lyToggleMes('${m}')">${LC_MES_CORTO[m]}</button>`).join('');
-  lyEl('lyNotaFeb').style.display = curMes==='FEB' ? '' : 'none';
+  lyEl('lyNotaFeb').style.display = (curMes==='FEB' && !evolSemMode) ? '' : 'none';
+  lyEl('lyPeriodoTxt').textContent = evolSemMode ? 'todo 2026 (marzo a octubre)' : MES_LABELS[curMes].toLowerCase().replace(/^./,c=>c.toUpperCase())+' (mes elegido arriba)';
   const periodoTxt = LC_ORDEN.filter(m=>lyMeses.has(m)).map(m=>LC_MES_CORTO[m]).join(', ');
   // filas con las métricas del periodo
   const rowsAll = all.map(lyMetric).filter(Boolean);
@@ -666,8 +657,8 @@ function lyRender(){
     } else {
       const f = all.filter(okE);
       const ms = LC_ORDEN.map(m => ({m, a:mesAgg(f,m)})).filter(x=>x.a.med);
-      rv = ms.map(x => lyBar(LC_MES_CORTO[x.m], lyTip(MES_LABELS[x.m],x.a), x.a, lyRight(x.a), `lyToggleMes('${x.m}')`, lyMeses.has(x.m), 60)).join('');
-      nota = 'Evolución mensual del Layout. Clic en un mes para sumarlo o quitarlo del periodo.';
+      rv = ms.map(x => lyBar(LC_MES_CORTO[x.m], lyTip(MES_LABELS[x.m],x.a), x.a, lyRight(x.a), '', lyMeses.has(x.m), 60)).join('');
+      nota = 'Evolución mensual del Layout (el mes elegido arriba aparece resaltado).';
     }
   }
   lyEl('lyResumenViz').innerHTML = rv || '<div style="font-size:12px;color:var(--muted)">Sin datos para este periodo.</div>';
