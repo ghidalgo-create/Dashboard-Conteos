@@ -167,6 +167,37 @@ body{background:var(--bg);color:var(--text);font-family:"Source Sans 3",sans-ser
 </div>
 
 
+<!-- LAYOUT CRITICO RECURRENTE -->
+<div style="padding:0 32px 20px">
+  <div class="card" id="layoutCritCard">
+    <div class="card-title"><span class="dot" style="background:#C93B3B"></span>Tiendas con Layout crítico recurrente — semana tras semana</div>
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;flex-wrap:wrap;font-size:12px;color:var(--muted)">
+      <label style="display:flex;align-items:center;gap:6px">Periodo
+        <select id="lcPeriodo" onchange="renderLayoutCriticos()" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:7px;font-family:inherit;font-size:12px;color:var(--text)">
+          <option value="mes">Mes seleccionado</option>
+          <option value="all">Todo 2026 (acumulado)</option>
+        </select></label>
+      <label style="display:flex;align-items:center;gap:6px">Cadena
+        <select id="lcCadena" onchange="renderLayoutCriticos()" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:7px;font-family:inherit;font-size:12px;color:var(--text)">
+          <option value="">Todas</option><option>AVA</option><option>TAMBO</option><option>PRIMAX</option><option>REPSOL</option><option>OXXO</option>
+        </select></label>
+      <label style="display:flex;align-items:center;gap:6px">Puntaje de Layout menor a
+        <select id="lcUmbral" onchange="renderLayoutCriticos()" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:7px;font-family:inherit;font-size:12px;color:var(--text)">
+          <option value="7" selected>7.0 (Rojo — crítico)</option>
+          <option value="8.5">8.5 (Naranja o peor)</option>
+          <option value="9.5">9.5 (todo lo que no es Verde)</option>
+        </select></label>
+      <label style="display:flex;align-items:center;gap:6px">Mínimo de semanas bajo el umbral
+        <select id="lcMin" onchange="renderLayoutCriticos()" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:7px;font-family:inherit;font-size:12px;color:var(--text)">
+          <option value="2">2</option><option value="3" selected>3</option><option value="4">4</option><option value="5">5</option><option value="10">10</option>
+        </select></label>
+    </div>
+    <div id="lcResumen" style="font-size:12px;color:var(--text2);margin-bottom:10px"></div>
+    <div id="lcTabla" style="overflow-x:auto"></div>
+    <div id="lcMas" style="margin-top:10px"></div>
+  </div>
+</div>
+
 <!-- TIENDA SEARCH CARD -->
 <div style="padding:0 32px 32px">
   <div class="card" id="tiendaSearchCard">
@@ -413,6 +444,94 @@ function renderCriticos() {
     </table>`;
 }
 
+
+// ── LAYOUT CRITICO RECURRENTE ──
+// Para agregar un mes nuevo: sumar su TIENDAS_<MES> a este mapa (y al orden).
+function tiendasByMes(){
+  return {MAR:TIENDAS_MAR, ABR:TIENDAS_ABR, MAY:TIENDAS_MAYO, JUN:TIENDAS_JUN, JUL:TIENDAS_JUL, AGO:TIENDAS_AGO, SET:TIENDAS_SET};
+}
+const LC_ORDEN = ['MAR','ABR','MAY','JUN','JUL','AGO','SET'];
+const LC_MES_CORTO = {MAR:'Mar',ABR:'Abr',MAY:'May',JUN:'Jun',JUL:'Jul',AGO:'Ago',SET:'Set'};
+let lcVerTodas = false;
+function lcToggleTodas(){ lcVerTodas = !lcVerTodas; renderLayoutCriticos(); }
+
+function renderLayoutCriticos(){
+  const elT = document.getElementById('lcTabla'); if(!elT) return;
+  const periodo = document.getElementById('lcPeriodo').value;
+  const cadSel  = document.getElementById('lcCadena').value;
+  const umbral  = parseFloat(document.getElementById('lcUmbral').value);
+  const minSem  = parseInt(document.getElementById('lcMin').value,10);
+  const src = tiendasByMes();
+  const meses = periodo==='all' ? LC_ORDEN : [curMes];
+  // acumular por tienda (cadena + estacion): secuencia de semanas medidas del KPI LAYOUT
+  const mapa = {};
+  meses.forEach(m => {
+    const dm = src[m]; if(!dm) return;
+    Object.entries(dm).forEach(([cad, stores]) => {
+      if(cadSel && cad!==cadSel) return;
+      stores.forEach(s => {
+        const k = s.kpis && s.kpis['LAYOUT']; if(!k) return;
+        const key = cad+'|'+s.estacion;
+        const e = mapa[key] || (mapa[key] = {estacion:s.estacion, cadena:cad, promotor:s.promotor||'', semanas:[]});
+        if(s.promotor) e.promotor = s.promotor;
+        ['s1','s2','s3','s4','s5'].forEach((w,i) => {
+          if(k[w]===undefined) return;           // semana inexistente en ese mes
+          e.semanas.push({mes:m, sem:i+1, v:(k[w]===null?null:k[w])});
+        });
+      });
+    });
+  });
+  const filas = [];
+  let totalMed = 0;
+  Object.values(mapa).forEach(e => {
+    const med = e.semanas.filter(x => x.v!==null);
+    if(!med.length) return;
+    totalMed++;
+    const bajo = med.filter(x => x.v < umbral);
+    if(bajo.length < minSem) return;              // recurrente = N o mas semanas bajo el umbral
+    let racha=0, maxR=0;                          // semanas sin medicion no cortan la racha
+    med.forEach(x => { if(x.v < umbral){ racha++; maxR=Math.max(maxR,racha);} else racha=0; });
+    const prom = med.reduce((a,x)=>a+x.v,0)/med.length;
+    filas.push({e, med:med.length, bajo:bajo.length, racha:maxR, prom});
+  });
+  filas.sort((a,b) => b.bajo-a.bajo || b.racha-a.racha || a.prom-b.prom || a.e.cadena.localeCompare(b.e.cadena) || a.e.estacion.localeCompare(b.e.estacion));
+  const topN = lcVerTodas ? filas.length : 20;
+  const etiqPer = periodo==='all' ? 'en 2026' : 'en '+MES_LABELS[curMes].toLowerCase();
+  document.getElementById('lcResumen').innerHTML = filas.length
+    ? `<b>${filas.length}</b> de ${totalMed} tiendas medidas ${etiqPer} tienen Layout &lt; ${umbral} en ${minSem} o más semanas. Ordenadas por semanas bajo el umbral, luego por racha consecutiva y puntaje promedio.`
+    : `Ninguna tienda tiene Layout &lt; ${umbral} en ${minSem} o más semanas ${etiqPer}${cadSel?' ('+cadSel+')':''}.`;
+  if(!filas.length){ elT.innerHTML=''; document.getElementById('lcMas').innerHTML=''; return; }
+  const th = 'padding:8px 10px;font-weight:700;color:var(--muted);font-size:11px;text-transform:uppercase;border-bottom:2px solid var(--border);';
+  const rows = filas.slice(0, topN).map((f,i) => {
+    let prevMes=null;
+    const cuadros = f.e.semanas.map(x => {
+      const sep = (periodo==='all' && x.mes!==prevMes) ? `<span style="font-size:9px;color:var(--muted);margin:0 3px 0 ${prevMes?8:0}px">${LC_MES_CORTO[x.mes]}</span>` : '';
+      prevMes = x.mes;
+      const col = x.v===null ? '#E5E7EB' : semColor2(x.v);
+      const lbl = LC_MES_CORTO[x.mes]+' S'+x.sem+': '+(x.v===null?'sin medición':x.v.toFixed(1));
+      return sep+`<span title="${lbl}" style="display:inline-block;width:12px;height:12px;border-radius:3px;background:${col};margin-right:2px;vertical-align:middle${x.v!==null&&x.v<umbral?';box-shadow:0 0 0 1.5px #7f1d1d inset':''}"></span>`;
+    }).join('');
+    const pc = semColor2(f.prom);
+    return `<tr>
+      <td style="padding:7px 10px;border-bottom:1px solid #f0f2f5;color:var(--muted)">${i+1}</td>
+      <td style="padding:7px 10px;border-bottom:1px solid #f0f2f5;font-weight:700;color:var(--navy)">${f.e.estacion}</td>
+      <td style="padding:7px 10px;border-bottom:1px solid #f0f2f5">${f.e.cadena}</td>
+      <td style="padding:7px 10px;border-bottom:1px solid #f0f2f5;color:var(--text2)">${f.e.promotor}</td>
+      <td style="padding:7px 10px;border-bottom:1px solid #f0f2f5;text-align:center;font-weight:800;color:#C93B3B">${f.bajo} <span style="font-weight:500;color:var(--muted)">de ${f.med}</span></td>
+      <td style="padding:7px 10px;border-bottom:1px solid #f0f2f5;text-align:center;font-weight:700">${f.racha}</td>
+      <td style="padding:7px 10px;border-bottom:1px solid #f0f2f5;text-align:center"><span style="display:inline-block;background:${pc};color:#fff;border-radius:5px;padding:2px 9px;font-weight:700">${f.prom.toFixed(1)}</span></td>
+      <td style="padding:7px 10px;border-bottom:1px solid #f0f2f5;white-space:nowrap">${cuadros}</td>
+    </tr>`;
+  }).join('');
+  elT.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:12px">
+    <thead><tr style="background:#f5f7fb">
+      <th style="${th}text-align:left">#</th><th style="${th}text-align:left">Tienda</th><th style="${th}text-align:left">Cadena</th><th style="${th}text-align:left">Promotor</th>
+      <th style="${th}text-align:center">Sem. bajo umbral</th><th style="${th}text-align:center">Racha máx.</th><th style="${th}text-align:center">Layout prom.</th><th style="${th}text-align:left">Historial por semana</th>
+    </tr></thead><tbody>${rows}</tbody></table>`;
+  document.getElementById('lcMas').innerHTML = filas.length>20
+    ? `<button onclick="lcToggleTodas()" style="padding:7px 14px;border-radius:7px;border:1px solid var(--border);background:#fff;color:var(--navy);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">${lcVerTodas?'Ver solo las 20 primeras':'Ver las '+filas.length+' tiendas'}</button>` : '';
+}
+
 function render() {
   document.getElementById('mesBadge').textContent = MES_LABELS[curMes];
   document.getElementById('footerDate').textContent = 'Dashboard de Ejecución en Campo — ' + MES_LABELS[curMes];
@@ -420,6 +539,7 @@ function render() {
   if(curCadena) renderKPIDetail();
   else document.getElementById('kpiDetail').innerHTML = '<div style="color:var(--muted);font-size:13px;padding:16px 0">Haz clic en una cadena para ver sus KPIs</div>';
   renderCriticos();
+  renderLayoutCriticos();
 }
 
 document.querySelectorAll('.month-btn[data-mes]').forEach(btn => {
