@@ -170,63 +170,74 @@ body{background:var(--bg);color:var(--text);font-family:"Source Sans 3",sans-ser
 </div>
 
 
-<!-- LAYOUT CRITICO RECURRENTE -->
+<!-- LAYOUT EN PROFUNDIDAD (anclado a la cadena elegida; todas las cadenas solo en Evolutivo) -->
 <div style="padding:0 32px 20px">
   <div class="card" id="layoutCritCard">
-    <div class="card-title"><span class="dot" style="background:#C93B3B"></span>Layout crítico recurrente — tiendas que no cumplen más de 2 veces</div>
-    <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;flex-wrap:wrap;font-size:12px;color:var(--muted)">
-      <label style="display:flex;align-items:center;gap:6px">Periodo
-        <select id="lcPeriodo" onchange="renderLayoutCriticos()" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:7px;font-family:inherit;font-size:12px;color:var(--text)">
-          <option value="mes">Mes seleccionado</option><option value="all">Todo 2026 (acumulado)</option></select></label>
-      <label style="display:flex;align-items:center;gap:6px">Layout menor a
-        <select id="lcUmbral" onchange="renderLayoutCriticos()" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:7px;font-family:inherit;font-size:12px;color:var(--text)">
-          <option value="7" selected>7.0 (Rojo)</option><option value="8.5">8.5 (Naranja o peor)</option><option value="9.5">9.5 (no Verde)</option></select></label>
-      <label style="display:flex;align-items:center;gap:6px">Mínimo de semanas sin cumplir
-        <select id="lcMin" onchange="renderLayoutCriticos()" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:7px;font-family:inherit;font-size:12px;color:var(--text)">
-          <option value="2">2</option><option value="3" selected>3 (más de 2 veces)</option><option value="4">4</option><option value="5">5</option><option value="10">10</option></select></label>
-    </div>
-    <div id="lcKpis" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px"></div>
+    <div class="card-title"><span class="dot" style="background:#C93B3B"></span><span id="lyTitulo">Layout en profundidad</span></div>
+    <div id="lyVacio" style="display:none;font-size:13px;color:var(--muted);padding:10px 2px">Selecciona una cadena en las tarjetas de arriba para ver el detalle de su Layout. Para ver todas las cadenas y compararlas, usa <b>📈 Evolutivo de Semáforos</b>.</div>
+    <div id="lyCuerpo">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;font-size:12px;color:var(--muted)">
+        <b style="color:var(--navy)">Periodo</b>
+        <span id="lyMeses" style="display:inline-flex;gap:5px;flex-wrap:wrap"></span>
+        <span style="width:1px;height:18px;background:var(--border);margin:0 4px"></span>
+        <button class="lc-seg" onclick="lyPreset(1)">Mes actual</button>
+        <button class="lc-seg" onclick="lyPreset(2)">Últimos 2</button>
+        <button class="lc-seg" onclick="lyPreset(3)">Últimos 3</button>
+        <button class="lc-seg" onclick="lyPreset(99)">Todo 2026</button>
+        <span id="lyNotaFeb" style="display:none;font-size:11px;color:#b45309">Feb no tiene detalle por tienda; se muestra desde marzo.</span>
+      </div>
+      <div id="lyKpis" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px"></div>
 
-    <div style="display:flex;gap:24px;flex-wrap:wrap;margin-bottom:20px;align-items:flex-start">
-      <div style="flex:1 1 440px;min-width:320px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;gap:8px;flex-wrap:wrap">
-          <div style="font-size:12px;font-weight:700;color:var(--navy)">Resumen <span id="lcGrupoLbl">por cadena</span> <span style="font-weight:500;color:var(--muted)">— % de tiendas con el problema</span></div>
-          <div style="display:flex;gap:6px"><button id="lcGBtnCad" onclick="lcSetGrupo('cadena')" class="lc-seg">Cadena</button><button id="lcGBtnPro" onclick="lcSetGrupo('promotor')" class="lc-seg">Promotor</button></div>
+      <div style="display:flex;gap:24px;flex-wrap:wrap;margin-bottom:20px;align-items:flex-start">
+        <div style="flex:1 1 440px;min-width:320px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;gap:8px;flex-wrap:wrap">
+            <div style="font-size:12px;font-weight:700;color:var(--navy)">Resumen <span style="font-weight:500;color:var(--muted)">— Layout ponderado (0–10)</span></div>
+            <div style="display:flex;gap:6px"><button id="lyRBtnCad" onclick="lySetResumen('cadena')" class="lc-seg">Por cadena</button><button id="lyRBtnMes" onclick="lySetResumen('mes')" class="lc-seg">Por mes</button><button id="lyRBtnPro" onclick="lySetResumen('promotor')" class="lc-seg">Por promotor</button></div>
+          </div>
+          <div id="lyResumenViz"></div>
+          <div id="lyResumenNota" style="font-size:10.5px;color:var(--muted);margin-top:4px"></div>
         </div>
-        <div id="lcResumenViz"></div>
-        <div style="font-size:10.5px;color:var(--muted);margin-top:4px">Barra completa = 100% de las tiendas medidas del grupo (rojo oscuro + rosado = total). <span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#C93B3B"></span> crónica (≥ 80% de sus semanas) · <span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#E8A0A0"></span> recurrente. Clic en una barra para filtrar el detalle y el ranking de distritos; otro clic la deselecciona.</div>
-      </div>
-      <div style="flex:1 1 440px;min-width:320px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;gap:8px;flex-wrap:wrap">
-          <div style="font-size:12px;font-weight:700;color:var(--navy)">Ranking de distritos <span id="lcDistTitulo" style="font-weight:600;color:#C93B3B"></span> <span style="font-weight:500;color:var(--muted)">— tiendas con el problema</span></div>
-          <div style="display:flex;gap:6px;align-items:center"><span style="font-size:11px;color:var(--muted)">Ordenar por</span><button id="lcOrdN" onclick="lcSetDistOrden('n')" class="lc-seg">N.º de tiendas</button><button id="lcOrdP" onclick="lcSetDistOrden('p')" class="lc-seg">% de tiendas</button><button id="lcDistMas" onclick="lcToggleDist()" class="lc-seg">Ver todos</button></div>
+        <div style="flex:1 1 440px;min-width:320px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;gap:8px;flex-wrap:wrap">
+            <div style="font-size:12px;font-weight:700;color:var(--navy)">Ranking de distritos <span style="font-weight:500;color:var(--muted)">— peor Layout primero</span></div>
+            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><span style="font-size:11px;color:var(--muted)">Ordenar</span><button id="lyOrdPeor" onclick="lySetDistOrden('peor')" class="lc-seg">Menor Layout</button><button id="lyOrdSem" onclick="lySetDistOrden('sem')" class="lc-seg">Más sem. sin cumplir</button><button id="lyOrdNun" onclick="lySetDistOrden('nunca')" class="lc-seg">Más “nunca cumplen”</button></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:11px;color:var(--muted)">Mín. tiendas por distrito (orden por Layout)
+            <select id="lyMinT" onchange="lyRender()" style="padding:3px 6px;border:1.5px solid var(--border);border-radius:6px;font-family:inherit;font-size:11px"><option value="1">1</option><option value="3" selected>3</option><option value="5">5</option><option value="10">10</option></select>
+            <button id="lyDistMas" onclick="lyToggleDist()" class="lc-seg" style="margin-left:auto"></button></div>
+          <div id="lyDistViz"></div>
+          <div style="font-size:10.5px;color:var(--muted);margin-top:4px">Distrito según el padrón. Barra: <span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#0E9B6A"></span> semanas que cumplen · <span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#C93B3B"></span> semanas sin cumplir. Clic en un distrito para filtrar el detalle.</div>
         </div>
-        <div id="lcChips" style="margin-bottom:6px"></div>
-        <div id="lcDistViz"></div>
-        <div style="font-size:10.5px;color:var(--muted);margin-top:4px">Distrito según el padrón. Barra completa = 100% de las tiendas medidas del distrito. Clic en un distrito para filtrar el detalle.</div>
       </div>
-    </div>
 
-    <div style="border-top:1px solid var(--border);padding-top:14px">
-      <div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:8px">Detalle de tiendas</div>
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;font-size:12px;color:var(--muted)">
-        <label style="display:flex;align-items:center;gap:6px">Cadena
-          <select id="lcCadena" onchange="lcSelKey=null;renderLayoutCriticos()" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:7px;font-family:inherit;font-size:12px;color:var(--text)">
-            <option value="">Todas</option><option>AVA</option><option>TAMBO</option><option>PRIMAX</option><option>REPSOL</option><option>OXXO</option></select></label>
-        <label style="display:flex;align-items:center;gap:6px">Promotor
-          <select id="lcPromotor" onchange="lcSelKey=null;renderLayoutCriticos()" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:7px;font-family:inherit;font-size:12px;color:var(--text);max-width:200px"><option value="">Todos</option></select></label>
-        <label style="display:flex;align-items:center;gap:6px">Distrito
-          <select id="lcDistrito" onchange="lcSelKey=null;renderLayoutCriticos()" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:7px;font-family:inherit;font-size:12px;color:var(--text);max-width:220px"><option value="">Todos</option></select></label>
-        <input id="lcBuscar" type="text" placeholder="🔍 Buscar tienda, distrito o promotor…" oninput="lcSelKey=null;renderLayoutCriticos()" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:7px;font-family:inherit;font-size:12px;color:var(--text);min-width:230px">
-        <button onclick="lcLimpiar()" class="lc-seg">✕ Limpiar filtros</button>
-        <span id="lcCuenta" style="color:var(--text2)"></span>
+      <div style="border-top:1px solid var(--border);padding-top:14px">
+        <div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:8px">Detalle de tiendas</div>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap;font-size:12px;color:var(--muted)">
+          <label style="display:flex;align-items:center;gap:6px">Distrito
+            <select id="lyDistrito" onchange="lySelKey=null;lyRender()" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:7px;font-family:inherit;font-size:12px;color:var(--text);max-width:220px"><option value="">Todos</option></select></label>
+          <label style="display:flex;align-items:center;gap:6px">Promotor
+            <select id="lyPromotor" onchange="lySelKey=null;lyRender()" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:7px;font-family:inherit;font-size:12px;color:var(--text);max-width:200px"><option value="">Todos</option></select></label>
+          <input id="lyBuscar" type="text" placeholder="🔍 Buscar tienda, distrito o promotor…" oninput="lySelKey=null;lyRender()" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:7px;font-family:inherit;font-size:12px;color:var(--text);min-width:250px">
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;font-size:12px;color:var(--muted)">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:5px 10px;border:1.5px solid var(--border);border-radius:7px;background:#fff"><input type="checkbox" id="lyNunca" onchange="lySelKey=null;lyRender()"> <b style="color:#C93B3B">Nunca cumplieron</b> en el periodo</label>
+          <label style="display:flex;align-items:center;gap:6px">Semanas sin cumplir
+            <select id="lySemModo" onchange="lySelKey=null;lyRender()" style="padding:6px 8px;border:1.5px solid var(--border);border-radius:7px;font-family:inherit;font-size:12px"><option value="ge">al menos</option><option value="eq">exactamente</option></select>
+            <select id="lySemN" onchange="lySelKey=null;lyRender()" style="padding:6px 8px;border:1.5px solid var(--border);border-radius:7px;font-family:inherit;font-size:12px"><option value="">—</option><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="8">8</option><option value="10">10</option><option value="12">12</option></select></label>
+          <label style="display:flex;align-items:center;gap:6px">Ordenar
+            <select id="lySort" onchange="lySelKey=null;lyRender()" style="padding:6px 8px;border:1.5px solid var(--border);border-radius:7px;font-family:inherit;font-size:12px"><option value="no">Más semanas sin cumplir</option><option value="peor">Menor Layout</option><option value="mejor">Mayor Layout</option><option value="az">Tienda A–Z</option></select></label>
+          <button onclick="lyLimpiar()" class="lc-seg">✕ Limpiar filtros</button>
+          <button onclick="lyCsv()" class="lc-seg">⬇ Exportar CSV</button>
+          <span id="lyCuenta" style="color:var(--text2)"></span>
+        </div>
+        <div id="lyChips" style="margin-bottom:8px"></div>
+        <div style="display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start;margin-bottom:16px">
+          <div style="flex:1 1 380px;min-width:300px"><div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:6px">Tiendas más críticas — clic para ver el detalle</div><div id="lyTop"></div></div>
+          <div id="lyDetalle" style="flex:1.4 1 420px;min-width:320px"></div>
+        </div>
+        <div id="lyTabla" style="overflow-x:auto"></div>
+        <div id="lyMas" style="margin-top:10px"></div>
       </div>
-      <div style="display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start;margin-bottom:16px">
-        <div style="flex:1 1 380px;min-width:300px"><div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:6px">Casos más críticos — clic para ver el detalle</div><div id="lcTop"></div></div>
-        <div id="lcDetalle" style="flex:1.4 1 420px;min-width:320px"></div>
-      </div>
-      <div id="lcTabla" style="overflow-x:auto"></div>
-      <div id="lcMas" style="margin-top:10px"></div>
     </div>
   </div>
 </div>
@@ -276,6 +287,7 @@ function toggleEvolSem(btn) {
   document.querySelectorAll('.month-btn[data-mes]').forEach(b => b.style.opacity = evolSemMode ? '0.5' : '1');
   btn.style.background = evolSemMode ? '#4a2694' : '#6435c9';
   if (evolSemMode) renderEvolSem();
+  lyResetFiltros(); lyRender();
 }
 
 function renderEvolSem() {
@@ -425,6 +437,7 @@ function selectCadena(cad) {
   curCadena = cad;
   renderCadenaCards();
   renderKPIDetail();
+  lyResetFiltros(); lyRender();
 }
 
 function renderKPIDetail() {
@@ -498,208 +511,269 @@ function lcDistrito(estacion){
   const d = LC_DISTRITOS[lcNN(estacion)]; if(!d) return 'SIN DISTRITO';
   return (d[1] && d[1]!=='LIMA' && d[1]!==d[0]) ? d[0]+' ('+d[1]+')' : d[0];
 }
-let lcDistOrden = 'n', lcVerTodas = false, lcDistTodos = false, lcGrupo = 'cadena', lcSelKey = null, lcFilasCache = [];
-function lcToggleTodas(){ lcVerTodas = !lcVerTodas; renderLayoutCriticos(); }
-function lcSetDistOrden(o){ lcDistOrden = o; renderLayoutCriticos(); }
-function lcPickPromotor(p){ const s=document.getElementById('lcPromotor'); s.value = (s.value===p?'':p); lcSelKey=null; renderLayoutCriticos(); }
-function lcToggleDist(){ lcDistTodos = !lcDistTodos; renderLayoutCriticos(); }
-function lcSetGrupo(g){ lcGrupo = g; renderLayoutCriticos(); }
-function lcSelect(key){ lcSelKey = key; lcRenderTop(); lcRenderDetalle(); }
-function lcPickCadena(c){ const s=document.getElementById('lcCadena'); s.value = (s.value===c?'':c); lcSelKey=null; renderLayoutCriticos(); }
-function lcPickDistrito(d){ const s=document.getElementById('lcDistrito'); s.value = (s.value===d?'':d); lcSelKey=null; renderLayoutCriticos(); }
-function lcLimpiar(){ ['lcCadena','lcPromotor','lcDistrito','lcBuscar'].forEach(i=>document.getElementById(i).value=''); lcSelKey=null; renderLayoutCriticos(); }
-function lcStrip(semanas, umbral, w, h){
-  return semanas.map(x => {
-    const col = x.v===null ? '#E5E7EB' : (x.v<umbral ? '#C93B3B' : semColor2(x.v));
-    return `<span style="display:inline-block;width:${w}px;height:${h}px;border-radius:2px;background:${col};margin-right:1px"></span>`;
-  }).join('');
-}
-function lcBarRow(label, title, wC, wR, right, onclick, active, lw){
-  return `<div ${onclick?`onclick="${onclick}" `:''}style="${onclick?'cursor:pointer;':''}${active?'background:#f0f4ff;':''}display:flex;align-items:center;gap:10px;padding:3px 6px;border-radius:6px" title="${title}">
-    <div style="width:${lw||150}px;font-size:12px;font-weight:700;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${label}</div>
-    <div style="flex:1;height:15px;background:#f1f3f8;border-radius:4px;overflow:hidden;display:flex"><div style="width:${wC}%;background:#C93B3B"></div><div style="width:${wR}%;background:#E8A0A0"></div></div>
-    <div style="width:118px;font-size:11px;color:var(--text2)">${right}</div></div>`;
-}
-
-function renderLayoutCriticos(){
-  if(!document.getElementById('lcTabla')) return;
-  const periodo = document.getElementById('lcPeriodo').value;
-  const cadSel  = document.getElementById('lcCadena').value;
-  const promSel = document.getElementById('lcPromotor').value;
-  const distSel = document.getElementById('lcDistrito').value;
-  const buscar  = lcNN(document.getElementById('lcBuscar').value);
-  const umbral  = parseFloat(document.getElementById('lcUmbral').value);
-  const minSem  = parseInt(document.getElementById('lcMin').value,10);
-  const src = tiendasByMes();
-  const meses = periodo==='all' ? LC_ORDEN : [curMes];
-  const mapa = {};
-  meses.forEach(m => {
+// ── LAYOUT EN PROFUNDIDAD ──
+// Semana cumple = 10, no cumple = 0 (null = sin medición). Layout ponderado = promedio de todas las semanas-tienda medidas.
+const LY_SEMS = ['s1','s2','s3','s4','s5'];
+const LY_OK = '#0E9B6A', LY_NO = '#C93B3B', LY_NULL = '#E5E7EB';
+let lyMeses = new Set(), lyResumen = 'mes', lyDistOrden = 'peor', lyDistTodos = false, lyVerTodas = false, lySelKey = null, lyCadF = '', lyFilas = [], lyL = {cad:[],prom:[],dist:[]}, lyCache = {scope:null, all:[]};
+const lyEl = id => document.getElementById(id);
+const lyEsc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+function lyDefaultMes(){ return LC_ORDEN.includes(curMes) ? curMes : LC_ORDEN[0]; }
+function lyScope(){ return evolSemMode ? '*' : (curCadena || null); }
+function lyBuild(scope){
+  if(lyCache.scope===scope) return lyCache.all;
+  const src = tiendasByMes(), mapa = {};
+  LC_ORDEN.forEach(m => {
     const dm = src[m]; if(!dm) return;
     Object.entries(dm).forEach(([cad, stores]) => {
+      if(scope!=='*' && cad!==scope) return;
       stores.forEach(s => {
         const k = s.kpis && s.kpis['LAYOUT']; if(!k) return;
+        if(/^FECHA /.test(lcNN(s.estacion))) return;
         const key = cad+'|'+s.estacion;
-        const e = mapa[key] || (mapa[key] = {key, estacion:s.estacion, cadena:cad, promotor:LC_PROM_CANON[s.promotor]||s.promotor||'', distrito:lcDistrito(s.estacion), semanas:[], ultimo:null});
-        if(s.promotor) e.promotor = LC_PROM_CANON[s.promotor]||s.promotor;
+        const e = mapa[key] || (mapa[key] = {key, estacion:s.estacion, cadena:cad, promotor:'', distrito:lcDistrito(s.estacion), porMes:{}, ultimo:null});
+        if(s.promotor) e.promotor = LC_PROM_CANON[s.promotor] || s.promotor;
         e.ultimo = {mes:m, kpis:s.kpis};
-        ['s1','s2','s3','s4','s5'].forEach((w,i) => {
-          if(k[w]===undefined) return;
-          e.semanas.push({mes:m, sem:i+1, v:(k[w]===null?null:k[w])});
-        });
+        const sems = []; LY_SEMS.forEach((w,i) => { if(k[w]!==undefined) sems.push({mes:m, sem:i+1, v:k[w]}); });
+        e.porMes[m] = sems;
       });
     });
   });
-  const medidas = {total:0, cad:{}, pro:{}, dis:{}};
-  const filasAll = [];
-  Object.values(mapa).forEach(e => {
-    const med = e.semanas.filter(x => x.v!==null);
-    if(!med.length) return;
-    medidas.total++;
-    medidas.cad[e.cadena] = (medidas.cad[e.cadena]||0)+1;
-    const pk = e.promotor || '(sin promotor)'; medidas.pro[pk] = (medidas.pro[pk]||0)+1;
-    if((!cadSel || e.cadena===cadSel) && (!promSel || e.promotor===promSel)) medidas.dis[e.distrito] = (medidas.dis[e.distrito]||0)+1;
-    const bajo = med.filter(x => x.v < umbral);
-    if(bajo.length < minSem) return;
-    const prom = med.reduce((a,x)=>a+x.v,0)/med.length;
-    filasAll.push({e, med:med.length, bajo:bajo.length, prom, cronica: bajo.length/med.length >= 0.8});
-  });
-  filasAll.sort((a,b) => b.bajo-a.bajo || a.prom-b.prom || a.e.cadena.localeCompare(b.e.cadena) || a.e.estacion.localeCompare(b.e.estacion));
-  const etiqPer = periodo==='all' ? '2026' : MES_LABELS[curMes].toLowerCase();
-
+  lyCache = {scope, all:Object.values(mapa)};
+  return lyCache.all;
+}
+function lyMetric(e){
+  const semanas = []; LC_ORDEN.forEach(m => { if(lyMeses.has(m) && e.porMes[m]) semanas.push(...e.porMes[m]); });
+  const med = semanas.filter(x => x.v!==null);
+  if(!med.length) return null;
+  const no = med.filter(x => x.v<5).length, ok = med.length-no;
+  return {e, semanas, med:med.length, no, ok, score:ok*10/med.length, nunca: ok===0};
+}
+function lyAgg(list){
+  const a = {t:0, med:0, no:0, ok:0, nunca:0, c3:0};
+  list.forEach(r => { a.t++; a.med+=r.med; a.no+=r.no; a.ok+=r.ok; if(r.nunca) a.nunca++; if(r.no>=3) a.c3++; });
+  a.score = a.med ? a.ok*10/a.med : null; return a;
+}
+const lyF1 = v => v===null||v===undefined ? '—' : v.toFixed(1);
+function lyBar(label, title, a, right, onclick, active, lw){
+  const pOk = a.med ? a.ok/a.med*100 : 0;
+  return `<div ${onclick?`onclick="${onclick}" `:''}style="${onclick?'cursor:pointer;':''}${active?'background:#f0f4ff;':''}display:flex;align-items:center;gap:10px;padding:3px 6px;border-radius:6px" title="${lyEsc(title)}">
+    <div style="width:${lw||150}px;font-size:12px;font-weight:700;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${label}</div>
+    <div style="flex:1;height:15px;background:#f1f3f8;border-radius:4px;overflow:hidden;display:flex"><div style="width:${pOk}%;background:${LY_OK}"></div><div style="width:${a.med?100-pOk:0}%;background:${LY_NO}"></div></div>
+    <div style="width:170px;font-size:11px;color:var(--text2)">${right}</div></div>`;
+}
+const lyRight = a => `<b style="color:${semColor2(a.score)}">${lyF1(a.score)}</b> · ${a.t} tiendas${a.nunca?` · <span style="color:${LY_NO}">${a.nunca} nunca</span>`:''}`;
+const lyTip = (k,a) => `${k}: Layout ${lyF1(a.score)} · ${a.t} tiendas · ${a.no} de ${a.med} semanas sin cumplir · ${a.nunca} tiendas nunca cumplieron`;
+function lyToggleMes(m){ if(lyMeses.has(m)){ if(lyMeses.size>1) lyMeses.delete(m); } else lyMeses.add(m); lySelKey=null; lyRender(); }
+function lyPreset(n){
+  let i = LC_ORDEN.indexOf(curMes); if(i<0) i = 0;
+  lyMeses = new Set(n>=99 ? LC_ORDEN : LC_ORDEN.slice(Math.max(0,i-n+1), i+1)); lySelKey=null; lyRender();
+}
+function lySetResumen(r){ lyResumen=r; lyRender(); }
+function lySetDistOrden(o){ lyDistOrden=o; lyRender(); }
+function lyToggleDist(){ lyDistTodos=!lyDistTodos; lyRender(); }
+function lyToggleTodas(){ lyVerTodas=!lyVerTodas; lyRender(); }
+function lyPickCad(i){ const c=lyL.cad[i]; lyCadF = (lyCadF===c?'':c); lySelKey=null; lyRender(); }
+function lyPickProm(i){ const s=lyEl('lyPromotor'), p=lyL.prom[i]; s.value = (s.value===p?'':p); lySelKey=null; lyRender(); }
+function lyPickDist(i){ const s=lyEl('lyDistrito'), d=lyL.dist[i]; s.value = (s.value===d?'':d); lySelKey=null; lyRender(); }
+function lyClrCad(){ lyCadF=''; lySelKey=null; lyRender(); }
+function lyClrSel(id){ lyEl(id).value=''; lySelKey=null; lyRender(); }
+function lySelect(i){ lySelKey = lyFilas[i] ? lyFilas[i].e.key : null; lyRenderTop(); lyRenderDetalle(); }
+function lyResetFiltros(){
+  lyCadF=''; lySelKey=null; lyVerTodas=false; lyDistTodos=false;
+  ['lyDistrito','lyPromotor','lyBuscar','lySemN'].forEach(i => lyEl(i).value='');
+  lyEl('lyNunca').checked=false; lyEl('lySemModo').value='ge'; lyEl('lySort').value='no';
+  lyResumen = lyScope()==='*' ? 'cadena' : 'mes';
+}
+function lyLimpiar(){ const r=lyResumen; lyResetFiltros(); lyResumen=r; lyRender(); }
+function lyResetMes(){ lyMeses = new Set([lyDefaultMes()]); }
+function lyRender(){
+  if(!lyEl('lyTabla')) return;
+  const scope = lyScope();
+  lyEl('lyVacio').style.display = scope===null ? '' : 'none';
+  lyEl('lyCuerpo').style.display = scope===null ? 'none' : '';
+  lyEl('lyTitulo').textContent = scope===null ? 'Layout en profundidad' : (scope==='*' ? 'Layout — todas las cadenas (comparativo)' : 'Layout — '+scope);
+  if(scope===null) return;
+  if(!lyMeses.size) lyResetMes();
+  const all = lyBuild(scope);
+  const esTodas = scope==='*';
+  if(!esTodas && lyResumen==='cadena') lyResumen='mes';
+  // periodo
+  lyEl('lyMeses').innerHTML = LC_ORDEN.map(m => `<button class="lc-seg${lyMeses.has(m)?' on':''}" onclick="lyToggleMes('${m}')">${LC_MES_CORTO[m]}</button>`).join('');
+  lyEl('lyNotaFeb').style.display = curMes==='FEB' ? '' : 'none';
+  const periodoTxt = LC_ORDEN.filter(m=>lyMeses.has(m)).map(m=>LC_MES_CORTO[m]).join(', ');
+  // filas con las métricas del periodo
+  const rowsAll = all.map(lyMetric).filter(Boolean);
+  const cadF = esTodas ? lyCadF : '';
+  const base = rowsAll.filter(r => !cadF || r.e.cadena===cadF);
+  const promPrev = lyEl('lyPromotor').value, distPrev = lyEl('lyDistrito').value;
+  // opciones de promotor (según cadena) y distrito (según cadena+promotor)
+  const pc = {}; base.forEach(r => { const k=r.e.promotor||'(sin promotor)'; pc[k]=(pc[k]||0)+1; });
+  const promKeys = Object.keys(pc).sort((a,b)=>pc[b]-pc[a]||a.localeCompare(b));
+  lyEl('lyPromotor').innerHTML = '<option value="">Todos</option>' + promKeys.map(k=>`<option value="${lyEsc(k)}">${lyEsc(k)} (${pc[k]})</option>`).join('');
+  lyEl('lyPromotor').value = pc[promPrev] ? promPrev : '';
+  const promV = lyEl('lyPromotor').value;
+  const pm = r => !promV || (r.e.promotor||'(sin promotor)')===promV;
+  const baseP = base.filter(pm);
+  const dc = {}; baseP.forEach(r => { dc[r.e.distrito]=(dc[r.e.distrito]||0)+1; });
+  const distKeys = Object.keys(dc).sort((a,b)=>a.localeCompare(b,'es'));
+  lyEl('lyDistrito').innerHTML = '<option value="">Todos</option>' + distKeys.map(k=>`<option value="${lyEsc(k)}">${lyEsc(k)} (${dc[k]})</option>`).join('');
+  lyEl('lyDistrito').value = dc[distPrev] ? distPrev : '';
+  const distV = lyEl('lyDistrito').value;
+  const sel = baseP.filter(r => !distV || r.e.distrito===distV);
   // ---- KPIs ----
-  const nRec = filasAll.length, nCron = filasAll.filter(f=>f.cronica).length;
-  const pct = medidas.total ? (nRec/medidas.total*100) : 0;
+  const A = lyAgg(sel);
   const tile = (val, lbl, sub, col) => `<div style="flex:1 1 170px;border:1px solid var(--border);border-left:4px solid ${col};border-radius:8px;padding:10px 14px;background:#fff">
       <div style="font-size:22px;font-weight:800;color:${col};font-family:'Playfair Display',serif">${val}</div>
       <div style="font-size:11px;font-weight:700;color:var(--navy)">${lbl}</div><div style="font-size:10.5px;color:var(--muted)">${sub}</div></div>`;
-  document.getElementById('lcKpis').innerHTML =
-    tile(medidas.total.toLocaleString(), 'Tiendas medidas', 'con Layout evaluado en '+etiqPer, '#1B2F6E') +
-    tile(nRec.toLocaleString(), 'No cumplen Layout en '+minSem+'+ semanas', pct.toFixed(0)+'% de las medidas · puntaje &lt; '+umbral, '#D97706') +
-    tile(nCron.toLocaleString(), 'Críticas crónicas', 'bajo el umbral en ≥ 80% de sus semanas', '#C93B3B');
-
-  // ---- resumen por cadena / promotor (siempre todas las cadenas) ----
-  document.getElementById('lcGBtnCad').className = 'lc-seg'+(lcGrupo==='cadena'?' on':'');
-  document.getElementById('lcGBtnPro').className = 'lc-seg'+(lcGrupo==='promotor'?' on':'');
-  document.getElementById('lcGrupoLbl').textContent = lcGrupo==='cadena' ? 'por cadena' : 'por promotor';
-  const grp = {};
-  filasAll.forEach(f => { const k = lcGrupo==='cadena' ? f.e.cadena : (f.e.promotor||'(sin promotor)'); const g = grp[k]||(grp[k]={cron:0,rec:0}); if(f.cronica) g.cron++; else g.rec++; });
-  const base = lcGrupo==='cadena' ? medidas.cad : medidas.pro;
-  let keys = Object.keys(base).map(k => ({k, tot:base[k], cron:(grp[k]||{}).cron||0, rec:(grp[k]||{}).rec||0}));
-  keys.forEach(x => { x.n=x.cron+x.rec; x.p=x.tot?x.n/x.tot*100:0; });
-  keys.sort((a,b) => b.n-a.n || b.p-a.p);
-  document.getElementById('lcResumenViz').innerHTML = `<div style="max-height:${lcGrupo==='promotor'?'320px':'none'};overflow-y:auto">` + (keys.length ? keys.map(x =>
-    lcBarRow(x.k, `${x.k}: ${x.n} de ${x.tot} tiendas (${x.cron} crónicas, ${x.rec} recurrentes)`, x.cron/x.tot*100, x.rec/x.tot*100,
-      `<b>${x.p.toFixed(0)}%</b> · ${x.n} de ${x.tot}`, lcGrupo==='cadena' ? `lcPickCadena('${x.k}')` : `lcPickPromotor('${x.k.replace(/'/g,"\\'")}')`, lcGrupo==='cadena' ? cadSel===x.k : promSel===x.k)).join('')
-    : '<div style="font-size:12px;color:var(--muted)">Sin datos para este periodo.</div>') + '</div>';
-
-  // ---- filtro promotor (opciones) ----
-  const pg = {}; filasAll.forEach(f => { const k=f.e.promotor||'(sin promotor)'; pg[k]=(pg[k]||0)+1; });
-  const selP = document.getElementById('lcPromotor'); const curP = selP.value;
-  selP.innerHTML = '<option value="">Todos</option>' + Object.keys(pg).sort((a,b)=>pg[b]-pg[a]||a.localeCompare(b)).map(k=>`<option value="${k.replace(/"/g,'&quot;')}">${k} (${pg[k]})</option>`).join('');
-  selP.value = pg[curP] ? curP : '';
-  const promSelOk = selP.value;
-
-  // ---- ranking de distritos (segun cadena/promotor elegidos) ----
-  const filtroBase = f => (!cadSel || f.e.cadena===cadSel) && (!promSelOk || f.e.promotor===promSelOk);
-  const dg = {};
-  filasAll.filter(filtroBase).forEach(f => { const g = dg[f.e.distrito]||(dg[f.e.distrito]={cron:0,rec:0}); if(f.cronica) g.cron++; else g.rec++; });
-  let dk = Object.keys(dg).map(k => ({k, tot:medidas.dis[k]||0, cron:dg[k].cron, rec:dg[k].rec}));
-  dk.forEach(x => { x.n=x.cron+x.rec; x.p=x.tot?x.n/x.tot*100:0; });
-  dk.sort((a,b) => lcDistOrden==='p' ? (b.p-a.p || b.n-a.n || a.k.localeCompare(b.k)) : (b.n-a.n || b.p-a.p || a.k.localeCompare(b.k)));
-  document.getElementById('lcOrdN').className = 'lc-seg'+(lcDistOrden==='n'?' on':'');
-  document.getElementById('lcOrdP').className = 'lc-seg'+(lcDistOrden==='p'?' on':'');
-  if(lcDistOrden==='p') dk = dk.filter(x => x.tot>=3);   // por % solo distritos con 3+ tiendas medidas (evita 1 de 1 = 100%)
-  const totalDist = dk.length;
-  const dkShow = lcDistTodos ? dk : dk.slice(0,10);
-  document.getElementById('lcDistMas').style.display = totalDist>10 ? '' : 'none';
-  document.getElementById('lcDistMas').textContent = lcDistTodos ? 'Ver solo el top 10' : 'Ver los '+totalDist+' distritos';
-  const chip = (t, fn) => `<span style="display:inline-flex;align-items:center;gap:6px;margin-right:6px;padding:3px 6px 3px 10px;border-radius:12px;background:#fdecec;color:#C93B3B;font-size:11px;font-weight:700">${t}<button onclick="${fn}" title="Quitar filtro" style="border:none;background:none;color:#C93B3B;cursor:pointer;font-size:13px;line-height:1;padding:0 3px">✕</button></span>`;
-  document.getElementById('lcChips').innerHTML = (cadSel?chip(cadSel,`lcPickCadena('${cadSel}')`):'') + (promSelOk?chip(promSelOk,`lcPickPromotor('${promSelOk.replace(/'/g,"\\'")}')`):'')
-    + ((cadSel||promSelOk)?'':'<span style="font-size:11px;color:var(--muted)">Mostrando todas las cadenas y promotores. Elige una cadena o un promotor para ver solo sus distritos.</span>')
-    + (lcDistOrden==='p'?'<span style="font-size:11px;color:var(--muted);margin-left:6px">Orden por %: solo distritos con 3 o más tiendas medidas.</span>':'');
-  document.getElementById('lcDistTitulo').textContent = [cadSel, promSelOk].filter(Boolean).join(' · ');
-  document.getElementById('lcDistViz').innerHTML = `<div style="max-height:${lcDistTodos?'380px':'none'};overflow-y:auto">` + (dkShow.length ? dkShow.map((x,i) =>
-    lcBarRow((i+1)+'. '+x.k, `${x.k}: ${x.n} de ${x.tot} tiendas medidas (${x.cron} crónicas, ${x.rec} recurrentes)`, x.tot ? x.cron/x.tot*100 : 0, x.tot ? x.rec/x.tot*100 : 0,
-      `<b>${x.n}</b> de ${x.tot} · ${x.p.toFixed(0)}%`, `lcPickDistrito('${x.k.replace(/'/g,"\\'")}')`, distSel===x.k, 215)).join('')
-    : '<div style="font-size:12px;color:var(--muted)">Ningún distrito con tiendas en esta condición.</div>') + '</div>';
-  // opciones del filtro de distrito (los que tienen casos)
-  const selD = document.getElementById('lcDistrito'); const cur = selD.value;
-  selD.innerHTML = '<option value="">Todos</option>' + dk.map(x=>`<option value="${x.k.replace(/"/g,'&quot;')}">${x.k} (${x.n})</option>`).join('');
-  selD.value = dk.find(x=>x.k===cur) ? cur : '';
-
-  // ---- detalle filtrado ----
-  const distSel2 = selD.value;
-  const filas = filasAll.filter(f => filtroBase(f) && (!distSel2 || f.e.distrito===distSel2)
-      && (!buscar || lcNN(f.e.estacion).includes(buscar) || lcNN(f.e.promotor).includes(buscar) || lcNN(f.e.distrito).includes(buscar)));
-  lcFilasCache = filas;
-  document.getElementById('lcCuenta').textContent = filas.length+' de '+nRec+' tiendas con el problema';
-  if(!filas.slice(0,8).find(f => f.e.key===lcSelKey)) lcSelKey = filas.length ? filas[0].e.key : null;
-  lcRenderTop(); lcRenderDetalle();
-
-  const elT = document.getElementById('lcTabla');
-  if(!filas.length){ elT.innerHTML='<div style="font-size:12px;color:var(--muted);padding:8px 0">Ninguna tienda cumple los filtros.</div>'; document.getElementById('lcMas').innerHTML=''; return; }
-  const topN = lcVerTodas ? filas.length : 20;
+  const pct = (n,d) => d ? Math.round(n/d*100)+'%' : '—';
+  lyEl('lyKpis').innerHTML =
+    tile(A.t.toLocaleString(), 'Tiendas medidas', 'con Layout evaluado · '+periodoTxt, '#1B2F6E') +
+    tile(lyF1(A.score), 'Layout ponderado', 'promedio de todas las semanas medidas (0–10)', A.score===null?'#9CA3AF':semColor2(A.score)) +
+    tile(A.no.toLocaleString(), 'Semanas sin cumplir', pct(A.no,A.med)+' de '+A.med.toLocaleString()+' semanas-tienda', '#D97706') +
+    tile(A.nunca.toLocaleString(), 'Nunca cumplieron', pct(A.nunca,A.t)+' de las tiendas · 0 semanas cumplidas', '#C93B3B') +
+    tile(A.c3.toLocaleString(), 'Con 3+ semanas sin cumplir', pct(A.c3,A.t)+' de las tiendas', '#7f1d1d');
+  // ---- resumen ----
+  lyEl('lyRBtnCad').style.display = esTodas ? '' : 'none';
+  lyEl('lyRBtnMes').textContent = esTodas ? 'Cadena × mes' : 'Por mes';
+  ['Cad','Mes','Pro'].forEach(x => lyEl('lyRBtn'+x).className = 'lc-seg'+(({Cad:'cadena',Mes:'mes',Pro:'promotor'})[x]===lyResumen?' on':''));
+  const grupo = (list, keyFn) => { const g={}; list.forEach(r => { const k=keyFn(r); (g[k]||(g[k]=[])).push(r); }); return g; };
+  let rv = '', nota = '';
+  if(lyResumen==='cadena'){
+    const g = grupo(rowsAll, r=>r.e.cadena);
+    const ks = Object.keys(g).map(k=>({k, a:lyAgg(g[k])})).sort((x,y)=>(x.a.score??99)-(y.a.score??99));
+    lyL.cad = ks.map(x=>x.k);
+    rv = ks.map((x,i) => lyBar(`<span style="color:${CADENA_COLORS[x.k]||'var(--navy)'}">${x.k}</span>`, lyTip(x.k,x.a), x.a, lyRight(x.a), `lyPickCad(${i})`, cadF===x.k, 90)).join('');
+    nota = 'Peor Layout primero. Clic en una cadena para filtrar el ranking de distritos y el detalle de tiendas.';
+  } else if(lyResumen==='promotor'){
+    const g = grupo(base, r=>r.e.promotor||'(sin promotor)');
+    const ks = Object.keys(g).map(k=>({k, a:lyAgg(g[k])})).sort((x,y)=>(x.a.score??99)-(y.a.score??99));
+    lyL.prom = ks.map(x=>x.k);
+    rv = `<div style="max-height:330px;overflow-y:auto">` + ks.map((x,i) => lyBar(lyEsc(x.k), lyTip(x.k,x.a), x.a, lyRight(x.a), `lyPickProm(${i})`, promV===x.k, 150)).join('') + '</div>';
+    nota = 'Peor Layout primero. Clic en un promotor para filtrar.';
+  } else {
+    // por mes (evolución, sin depender del periodo elegido)
+    const okE = e => (!promV || (e.promotor||'(sin promotor)')===promV) && (!distV || e.distrito===distV);
+    const mesAgg = (lista, m) => { const rs=[]; lista.forEach(e => { if(!e.porMes[m]) return; const med=e.porMes[m].filter(x=>x.v!==null); if(!med.length) return; const no=med.filter(x=>x.v<5).length; rs.push({med:med.length,no,ok:med.length-no,nunca:no===med.length}); }); return lyAgg(rs); };
+    if(esTodas){
+      const cads = Object.keys(CADENA_COLORS).filter(c => all.some(e=>e.cadena===c));
+      const th = 'padding:5px 6px;font-size:10px;color:var(--muted);font-weight:700;text-align:center;border-bottom:2px solid var(--border)';
+      const cell = a => a.med ? `<td style="padding:3px 4px;text-align:center;border-bottom:1px solid #f0f2f5"><span title="${a.t} tiendas · ${a.nunca} nunca cumplieron" style="display:inline-block;min-width:36px;background:${semColor2(a.score)};color:#fff;border-radius:5px;padding:2px 4px;font-size:11px;font-weight:700">${lyF1(a.score)}</span></td>` : '<td style="text-align:center;color:#bbb;border-bottom:1px solid #f0f2f5">—</td>';
+      const fila = (nom, col, lista) => `<tr><td style="padding:4px 6px;font-weight:700;font-size:12px;color:${col};border-bottom:1px solid #f0f2f5">${nom}</td>${LC_ORDEN.map(m=>cell(mesAgg(lista,m))).join('')}</tr>`;
+      const filtrado = all.filter(okE);
+      rv = `<div style="overflow-x:auto"><table style="border-collapse:collapse;width:100%"><thead><tr><th style="${th};text-align:left">Cadena</th>${LC_ORDEN.map(m=>`<th style="${th}${lyMeses.has(m)?';color:var(--navy);background:#f0f4ff':''}">${LC_MES_CORTO[m]}</th>`).join('')}</tr></thead><tbody>${cads.map(c=>fila(c, CADENA_COLORS[c], filtrado.filter(e=>e.cadena===c))).join('')}${fila('Todas','var(--navy)',filtrado)}</tbody></table></div>`;
+      nota = 'Layout ponderado por mes y cadena (versus entre cadenas). Marzo: Primax y Repsol sin medición de Layout.';
+    } else {
+      const f = all.filter(okE);
+      const ms = LC_ORDEN.map(m => ({m, a:mesAgg(f,m)})).filter(x=>x.a.med);
+      rv = ms.map(x => lyBar(LC_MES_CORTO[x.m], lyTip(MES_LABELS[x.m],x.a), x.a, lyRight(x.a), `lyToggleMes('${x.m}')`, lyMeses.has(x.m), 60)).join('');
+      nota = 'Evolución mensual del Layout. Clic en un mes para sumarlo o quitarlo del periodo.';
+    }
+  }
+  lyEl('lyResumenViz').innerHTML = rv || '<div style="font-size:12px;color:var(--muted)">Sin datos para este periodo.</div>';
+  lyEl('lyResumenNota').textContent = nota;
+  // ---- ranking de distritos ----
+  const dg = grupo(baseP, r=>r.e.distrito);
+  let dk = Object.keys(dg).map(k => ({k, a:lyAgg(dg[k])}));
+  const minT = parseInt(lyEl('lyMinT').value,10);
+  if(lyDistOrden==='peor'){ dk = dk.filter(x=>x.a.t>=minT).sort((x,y)=>(x.a.score??99)-(y.a.score??99) || y.a.no-x.a.no || x.k.localeCompare(y.k)); }
+  else if(lyDistOrden==='sem'){ dk.sort((x,y)=>y.a.no-x.a.no || (x.a.score??99)-(y.a.score??99) || x.k.localeCompare(y.k)); }
+  else { dk.sort((x,y)=>y.a.nunca-x.a.nunca || (x.a.score??99)-(y.a.score??99) || x.k.localeCompare(y.k)); }
+  ['Peor','Sem','Nun'].forEach(x => lyEl('lyOrd'+x).className = 'lc-seg'+(({Peor:'peor',Sem:'sem',Nun:'nunca'})[x]===lyDistOrden?' on':''));
+  lyEl('lyMinT').disabled = lyDistOrden!=='peor';
+  lyL.dist = dk.map(x=>x.k);
+  const dkShow = lyDistTodos ? dk : dk.slice(0,10);
+  lyEl('lyDistMas').style.display = dk.length>10 ? '' : 'none';
+  lyEl('lyDistMas').textContent = lyDistTodos ? 'Ver solo el top 10' : 'Ver los '+dk.length+' distritos';
+  lyEl('lyDistViz').innerHTML = `<div style="max-height:${lyDistTodos?'380px':'none'};overflow-y:auto">` + (dkShow.length ? dkShow.map((x,i) =>
+    lyBar((i+1)+'. '+lyEsc(x.k), lyTip(x.k,x.a), x.a, lyRight(x.a), `lyPickDist(${i})`, distV===x.k, 200)).join('')
+    : '<div style="font-size:12px;color:var(--muted)">Ningún distrito cumple el mínimo de tiendas.</div>') + '</div>';
+  // ---- chips de filtros ----
+  const chip = (t, fn) => `<span style="display:inline-flex;align-items:center;gap:6px;margin-right:6px;padding:3px 6px 3px 10px;border-radius:12px;background:#fdecec;color:#C93B3B;font-size:11px;font-weight:700">${lyEsc(t)}<button onclick="${fn}" style="border:none;background:none;color:#C93B3B;cursor:pointer;font-size:12px;padding:0 2px">✕</button></span>`;
+  lyEl('lyChips').innerHTML = (cadF?chip(cadF,'lyClrCad()'):'') + (promV?chip(promV,"lyClrSel('lyPromotor')"):'') + (distV?chip(distV,"lyClrSel('lyDistrito')"):'');
+  // ---- detalle de tiendas ----
+  const q = lcNN(lyEl('lyBuscar').value), nunca = lyEl('lyNunca').checked, semN = lyEl('lySemN').value, modo = lyEl('lySemModo').value, orden = lyEl('lySort').value;
+  let filas = sel.filter(r => (!q || lcNN(r.e.estacion).includes(q) || lcNN(r.e.promotor).includes(q) || lcNN(r.e.distrito).includes(q))
+      && (!nunca || r.nunca)
+      && (semN==='' || (modo==='eq' ? r.no===+semN : r.no>=+semN)));
+  const cmpAz = (a,b) => a.e.cadena.localeCompare(b.e.cadena) || a.e.estacion.localeCompare(b.e.estacion);
+  filas.sort(orden==='peor' ? (a,b)=>a.score-b.score || b.med-a.med || cmpAz(a,b)
+    : orden==='mejor' ? (a,b)=>b.score-a.score || cmpAz(a,b)
+    : orden==='az' ? cmpAz
+    : (a,b)=>b.no-a.no || a.score-b.score || cmpAz(a,b));
+  lyFilas = filas;
+  lyEl('lyCuenta').textContent = filas.length.toLocaleString()+' de '+sel.length.toLocaleString()+' tiendas';
+  if(!filas.slice(0,8).find(f=>f.e.key===lySelKey)) lySelKey = filas.length ? filas[0].e.key : null;
+  lyRenderTop(); lyRenderDetalle();
+  const elT = lyEl('lyTabla');
+  if(!filas.length){ elT.innerHTML='<div style="font-size:12px;color:var(--muted);padding:8px 0">Ninguna tienda cumple los filtros.</div>'; lyEl('lyMas').innerHTML=''; return; }
+  const topN = lyVerTodas ? filas.length : 25;
   const th = 'padding:8px 10px;font-weight:700;color:var(--muted);font-size:11px;text-transform:uppercase;border-bottom:2px solid var(--border);';
   const td = 'padding:7px 10px;border-bottom:1px solid #f0f2f5;';
-  const rows = filas.slice(0, topN).map((f,i) => {
+  const multi = lyMeses.size>1;
+  const rows = filas.slice(0,topN).map((f,i) => {
     let prevMes=null;
-    const cuadros = f.e.semanas.map(x => {
-      const sep = (periodo==='all' && x.mes!==prevMes) ? `<span style="font-size:9px;color:var(--muted);margin:0 3px 0 ${prevMes?8:0}px">${LC_MES_CORTO[x.mes]}</span>` : '';
+    const cuadros = f.semanas.map(x => {
+      const sep = (multi && x.mes!==prevMes) ? `<span style="font-size:9px;color:var(--muted);margin:0 3px 0 ${prevMes?8:0}px">${LC_MES_CORTO[x.mes]}</span>` : '';
       prevMes = x.mes;
-      const col = x.v===null ? '#E5E7EB' : semColor2(x.v);
-      const lbl = LC_MES_CORTO[x.mes]+' S'+x.sem+': '+(x.v===null?'sin medición':x.v.toFixed(1));
-      return sep+`<span title="${lbl}" style="display:inline-block;width:12px;height:12px;border-radius:3px;background:${col};margin-right:2px;vertical-align:middle${x.v!==null&&x.v<umbral?';box-shadow:0 0 0 1.5px #7f1d1d inset':''}"></span>`;
+      const col = x.v===null ? LY_NULL : (x.v<5 ? LY_NO : LY_OK);
+      return sep+`<span title="${LC_MES_CORTO[x.mes]} S${x.sem}: ${x.v===null?'sin medición':(x.v<5?'no cumple':'cumple')}" style="display:inline-block;width:12px;height:12px;border-radius:3px;background:${col};margin-right:2px;vertical-align:middle"></span>`;
     }).join('');
-    return `<tr><td style="${td}color:var(--muted)">${i+1}</td><td style="${td}font-weight:700">${f.e.cadena}</td><td style="${td}font-weight:700;color:var(--navy)">${f.e.estacion}</td><td style="${td}color:var(--text2)">${f.e.distrito}</td><td style="${td}color:var(--text2)">${f.e.promotor}</td>
-      <td style="${td}text-align:center;font-weight:800;color:#C93B3B">${f.bajo} <span style="font-weight:500;color:var(--muted)">de ${f.med}</span></td>
-      <td style="${td}text-align:center"><span style="display:inline-block;background:${semColor2(f.prom)};color:#fff;border-radius:5px;padding:2px 9px;font-weight:700">${f.prom.toFixed(1)}</span></td><td style="${td}white-space:nowrap">${cuadros}</td></tr>`;
+    return `<tr style="cursor:pointer" onclick="lySelect(${i})"><td style="${td}color:var(--muted)">${i+1}</td>${esTodas?`<td style="${td}font-weight:700;color:${CADENA_COLORS[f.e.cadena]||'var(--navy)'}">${f.e.cadena}</td>`:''}<td style="${td}font-weight:700;color:var(--navy)">${lyEsc(f.e.estacion)}</td><td style="${td}color:var(--text2)">${lyEsc(f.e.distrito)}</td><td style="${td}color:var(--text2)">${lyEsc(f.e.promotor||'—')}</td>
+      <td style="${td}text-align:center;font-weight:800;color:${f.no?LY_NO:LY_OK}">${f.no} <span style="font-weight:500;color:var(--muted)">de ${f.med}</span>${f.nunca?'<div style="font-size:9px;font-weight:700;color:#7f1d1d">NUNCA CUMPLIÓ</div>':''}</td>
+      <td style="${td}text-align:center"><span style="display:inline-block;background:${semColor2(f.score)};color:#fff;border-radius:5px;padding:2px 9px;font-weight:700">${lyF1(f.score)}</span></td><td style="${td}white-space:nowrap">${cuadros}</td></tr>`;
   }).join('');
   elT.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:#f5f7fb">
-    <th style="${th}text-align:left">#</th><th style="${th}text-align:left">Cadena</th><th style="${th}text-align:left">Tienda</th><th style="${th}text-align:left">Distrito</th><th style="${th}text-align:left">Promotor</th>
-    <th style="${th}text-align:center">Sem. bajo umbral</th><th style="${th}text-align:center">Layout prom.</th><th style="${th}text-align:left">Historial por semana</th>
+    <th style="${th}text-align:left">#</th>${esTodas?`<th style="${th}text-align:left">Cadena</th>`:''}<th style="${th}text-align:left">Tienda</th><th style="${th}text-align:left">Distrito</th><th style="${th}text-align:left">Promotor</th>
+    <th style="${th}text-align:center">Sem. sin cumplir</th><th style="${th}text-align:center">Layout</th><th style="${th}text-align:left">Resultado por semana <span style="text-transform:none;font-weight:500">(<span style="color:${LY_OK}">■</span> cumple · <span style="color:${LY_NO}">■</span> no cumple · <span style="color:#bbb">■</span> sin medir)</span></th>
     </tr></thead><tbody>${rows}</tbody></table>`;
-  document.getElementById('lcMas').innerHTML = filas.length>20
-    ? `<button onclick="lcToggleTodas()" class="lc-seg">${lcVerTodas?'Ver solo las 20 primeras':'Ver las '+filas.length+' tiendas'}</button>` : '';
+  lyEl('lyMas').innerHTML = filas.length>25
+    ? `<button onclick="lyToggleTodas()" class="lc-seg">${lyVerTodas?'Ver solo las 25 primeras':'Ver las '+filas.length.toLocaleString()+' tiendas'}</button>` : '';
 }
-
-function lcRenderTop(){
-  const umbral = parseFloat(document.getElementById('lcUmbral').value);
-  const el = document.getElementById('lcTop');
-  const top = lcFilasCache.slice(0,8);
-  if(!top.length){ el.innerHTML = '<div style="font-size:12px;color:var(--muted);padding:8px 0">Ninguna tienda cumple el criterio con los filtros actuales.</div>'; return; }
-  el.innerHTML = top.map((f,i) => `<div class="lc-row${f.e.key===lcSelKey?' sel':''}" onclick="lcSelect('${f.e.key.replace(/'/g,"\\'")}')">
+function lyRenderTop(){
+  const el = lyEl('lyTop');
+  const top = lyFilas.slice(0,8);
+  if(!top.length){ el.innerHTML = '<div style="font-size:12px;color:var(--muted);padding:8px 0">Ninguna tienda cumple los filtros actuales.</div>'; return; }
+  const strip = f => f.semanas.slice(-20).map(x => `<span style="display:inline-block;width:6px;height:10px;border-radius:2px;background:${x.v===null?LY_NULL:(x.v<5?LY_NO:LY_OK)};margin-right:1px"></span>`).join('');
+  el.innerHTML = top.map((f,i) => `<div class="lc-row${f.e.key===lySelKey?' sel':''}" onclick="lySelect(${i})">
       <div style="width:18px;font-size:11px;color:var(--muted)">${i+1}</div>
-      <div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:700;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${f.e.estacion}</div>
-        <div style="margin-top:3px;line-height:0">${lcStrip(f.e.semanas.slice(-20), umbral, 6, 10)}</div></div>
-      <div style="text-align:right;font-size:11px;white-space:nowrap"><div style="font-weight:800;color:#C93B3B">${f.bajo} de ${f.med}</div><div style="color:var(--muted)">${f.e.cadena}</div></div></div>`).join('')
-    + (lcFilasCache.length>8 ? `<div style="font-size:11px;color:var(--muted);padding:2px 4px">Mostrando 8 de ${lcFilasCache.length}. El resto está en la tabla de abajo.</div>` : '');
+      <div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:700;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${lyEsc(f.e.estacion)}</div>
+        <div style="margin-top:3px;line-height:0">${strip(f)}</div></div>
+      <div style="text-align:right;font-size:11px;white-space:nowrap"><div style="font-weight:800;color:${f.no?LY_NO:LY_OK}">${f.no} de ${f.med}${f.nunca?' · nunca':''}</div><div style="color:var(--muted)">${f.e.cadena} · ${lyF1(f.score)}</div></div></div>`).join('')
+    + (lyFilas.length>8 ? `<div style="font-size:11px;color:var(--muted);padding:2px 4px">Mostrando 8 de ${lyFilas.length.toLocaleString()}. El resto está en la tabla de abajo.</div>` : '');
 }
-
-function lcRenderDetalle(){
-  const el = document.getElementById('lcDetalle');
-  const f = lcFilasCache.find(x => x.e.key===lcSelKey);
+function lyRenderDetalle(){
+  const el = lyEl('lyDetalle');
+  const f = lyFilas.find(x => x.e.key===lySelKey);
   if(!f){ el.innerHTML=''; return; }
-  const umbral = parseFloat(document.getElementById('lcUmbral').value);
   const e = f.e, porMes = {};
-  e.semanas.forEach(x => { (porMes[x.mes] = porMes[x.mes] || {})[x.sem] = x.v; });
+  f.semanas.forEach(x => { (porMes[x.mes] = porMes[x.mes] || {})[x.sem] = x.v; });
   const cell = v => v===undefined ? '<td style="padding:4px 6px;border-bottom:1px solid #f0f2f5"></td>'
     : v===null ? '<td style="padding:4px 6px;text-align:center;border-bottom:1px solid #f0f2f5;color:#bbb">—</td>'
-    : `<td style="padding:4px 6px;text-align:center;border-bottom:1px solid #f0f2f5"><span style="display:inline-block;min-width:34px;background:${semColor2(v)}22;color:${semColor2(v)};border-radius:5px;padding:2px 6px;font-weight:700${v<umbral?';box-shadow:0 0 0 1.5px '+semColor2(v)+' inset':''}">${v.toFixed(1)}</span></td>`;
-  const maxSem = Math.max(4, ...e.semanas.map(x=>x.sem)), cols = Array.from({length:maxSem},(_,i)=>i+1);
-  const filasMes = Object.keys(porMes).map(m => `<tr><td style="padding:4px 8px;border-bottom:1px solid #f0f2f5;font-weight:700;color:var(--navy);font-size:11px">${LC_MES_CORTO[m]}</td>${cols.map(s=>cell(porMes[m][s])).join('')}</tr>`).join('');
+    : `<td style="padding:4px 6px;text-align:center;border-bottom:1px solid #f0f2f5"><span style="display:inline-block;min-width:34px;background:${v<5?LY_NO:LY_OK}22;color:${v<5?LY_NO:LY_OK};border-radius:5px;padding:2px 6px;font-weight:700">${v<5?'No':'Sí'}</span></td>`;
+  const maxSem = Math.max(4, ...f.semanas.map(x=>x.sem)), cols = Array.from({length:maxSem},(_,i)=>i+1);
+  const filasMes = Object.keys(porMes).map(m => { const vs=Object.values(porMes[m]).filter(v=>v!==null), no=vs.filter(v=>v<5).length;
+    return `<tr><td style="padding:4px 8px;border-bottom:1px solid #f0f2f5;font-weight:700;color:var(--navy);font-size:11px">${LC_MES_CORTO[m]}</td>${cols.map(s=>cell(porMes[m][s])).join('')}<td style="padding:4px 8px;border-bottom:1px solid #f0f2f5;font-size:11px;font-weight:700;color:${no?LY_NO:LY_OK}">${vs.length?lyF1((vs.length-no)*10/vs.length):'—'}</td></tr>`; }).join('');
   const kp = Object.entries(e.ultimo.kpis).filter(([k,v]) => k!=='LAYOUT' && v.prom!==null && v.prom!==undefined && v.prom<9.5).sort((a,b)=>a[1].prom-b[1].prom).slice(0,5);
-  const kpHtml = kp.length ? kp.map(([k,v]) => `<span style="display:inline-block;margin:2px 6px 2px 0;padding:3px 9px;border-radius:12px;background:${semColor2(v.prom)}1f;color:${semColor2(v.prom)};font-size:11px;font-weight:700">${k} ${v.prom.toFixed(1)}</span>`).join('') : '<span style="font-size:11px;color:var(--muted)">Ningún otro KPI bajo 9.5 en el mes.</span>';
+  const kpHtml = kp.length ? kp.map(([k,v]) => `<span style="display:inline-block;margin:2px 6px 2px 0;padding:3px 9px;border-radius:12px;background:${semColor2(v.prom)}1f;color:${semColor2(v.prom)};font-size:11px;font-weight:700">${lyEsc(k)} ${v.prom.toFixed(1)}</span>`).join('') : '<span style="font-size:12px;color:var(--muted)">Sin otros KPIs bajo 9.5.</span>';
   const chip = (t,c) => `<span style="display:inline-block;margin-right:6px;padding:3px 9px;border-radius:12px;background:${c}18;color:${c};font-size:11px;font-weight:700">${t}</span>`;
   el.innerHTML = `<div style="border:1px solid var(--border);border-radius:10px;padding:14px 16px;background:#fff">
-    <div style="font-size:14px;font-weight:700;color:var(--navy)">${e.estacion}</div>
-    <div style="font-size:12px;color:var(--muted);margin:2px 0 10px">${e.cadena} · ${e.distrito} · ${e.promotor||'sin promotor'}</div>
-    <div style="margin-bottom:12px">${chip(f.bajo+' de '+f.med+' semanas bajo '+umbral,'#C93B3B')}${chip('Layout prom. '+f.prom.toFixed(1), semColor2(f.prom))}${f.cronica?chip('Crónica','#7f1d1d'):''}</div>
+    <div style="font-size:14px;font-weight:700;color:var(--navy)">${lyEsc(e.estacion)}</div>
+    <div style="font-size:12px;color:var(--muted);margin:2px 0 10px">${e.cadena} · ${lyEsc(e.distrito)} · ${lyEsc(e.promotor||'sin promotor')}</div>
+    <div style="margin-bottom:12px">${chip(f.no+' de '+f.med+' semanas sin cumplir', f.no?LY_NO:LY_OK)}${chip('Layout '+lyF1(f.score), semColor2(f.score))}${f.nunca?chip('Nunca cumplió','#7f1d1d'):''}</div>
     <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:4px">Layout por semana</div>
-    <table style="border-collapse:collapse;font-size:12px;margin-bottom:12px"><thead><tr><th></th>${cols.map(s=>`<th style="padding:3px 6px;font-size:10px;color:var(--muted)">S${s}</th>`).join('')}</tr></thead><tbody>${filasMes}</tbody></table>
+    <table style="border-collapse:collapse;font-size:12px;margin-bottom:12px"><thead><tr><th></th>${cols.map(s=>`<th style="padding:3px 6px;font-size:10px;color:var(--muted)">S${s}</th>`).join('')}<th style="padding:3px 8px;font-size:10px;color:var(--muted)">Layout</th></tr></thead><tbody>${filasMes}</tbody></table>
     <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:4px">Otros KPIs bajo 9.5 (${LC_MES_CORTO[e.ultimo.mes]}, promedio del mes)</div>
     <div>${kpHtml}</div></div>`;
 }
-
+function lyCsv(){
+  const q = v => '"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+  const ms = LC_ORDEN.filter(m=>lyMeses.has(m)).map(m=>LC_MES_CORTO[m]).join('+');
+  const L = [['Cadena','Tienda','Distrito','Promotor','Periodo','Semanas medidas','Semanas sin cumplir','Layout (0-10)','Nunca cumplió'].map(q).join(',')];
+  lyFilas.forEach(f => L.push([f.e.cadena,f.e.estacion,f.e.distrito,f.e.promotor,ms,f.med,f.no,f.score.toFixed(2),f.nunca?'SI':'NO'].map(q).join(',')));
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿'+L.join('\n')],{type:'text/csv;charset=utf-8'}));
+  a.download = 'layout_tiendas_'+(lyScope()==='*'?'todas':lyScope())+'.csv'; document.body.appendChild(a); a.click(); a.remove();
+}
 function render() {
   document.getElementById('mesBadge').textContent = MES_LABELS[curMes];
   document.getElementById('footerDate').textContent = 'Dashboard de Ejecución en Campo — ' + MES_LABELS[curMes];
@@ -707,7 +781,7 @@ function render() {
   if(curCadena) renderKPIDetail();
   else document.getElementById('kpiDetail').innerHTML = '<div style="color:var(--muted);font-size:13px;padding:16px 0">Haz clic en una cadena para ver sus KPIs</div>';
   renderCriticos();
-  renderLayoutCriticos();
+  lyRender();
 }
 
 document.querySelectorAll('.month-btn[data-mes]').forEach(btn => {
@@ -724,6 +798,7 @@ document.querySelectorAll('.month-btn[data-mes]').forEach(btn => {
     document.querySelectorAll('.month-btn[data-mes]').forEach(b => {
       b.className = 'month-btn ' + (b.dataset.mes===curMes?'active':'inactive');
     });
+    lyResetMes(); lyResetFiltros();
     render(); onMesChange(curMes);
   });
 });
